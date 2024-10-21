@@ -1,33 +1,36 @@
+using Game.Ids;
+using Game.Logic;
 using Game.Messages;
 using Game.Services;
-using GameLovers.Services; 
+using Game.Utils;
+using GameLovers.Services;
 using UnityEngine;
 
 namespace Game.MonoComponent
 {
 	public class PieceSpawnerMonoComponent : MonoBehaviour
 	{
+		[SerializeField] private RectTransform _rectTransform;
+
 		private IGameServices _services;
+		private IGameDataProvider _dataProvider;
+
+		private void OnValidate()
+		{
+			_rectTransform ??= GetComponent<RectTransform>();
+		}
 
 		private void Awake()
 		{
 			_services = MainInstaller.Resolve<IGameServices>();
+			_dataProvider = MainInstaller.Resolve<IGameDataProvider>();
 
 			_services.MessageBrokerService.Subscribe<OnGameInitMessage>(OnGameInit);
-			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDropped);
 		}
 
 		private void OnDestroy()
 		{
 			_services.MessageBrokerService.UnsubscribeAll(this);
-		}
-
-		private void OnPieceDropped(OnPieceDroppedMessage message)
-		{
-			if (GetComponentsInChildren<PieceMonoComponent>().Length == 0)
-			{
-				SpawnPieces();
-			}
 		}
 
 		private void OnGameInit(OnGameInitMessage message)
@@ -37,15 +40,21 @@ namespace Game.MonoComponent
 
 		private void SpawnPieces()
 		{
-			// TODO: Get the board transform size
-			var size = 300;
-			var startPos = -size / 2f;
+			var distance = _rectTransform.rect.width / 4f;
+			var xPos = -distance*2;
 
-			for (var i = 0; i < Constants.SPAWN_PIECES; i++)
+			foreach (var piece in _dataProvider.GameplayBoardDataProvider.InputPieces)
 			{
-				var trans = _services.PoolService.Spawn<PieceMonoComponent>().transform;
+				xPos += distance;
 
-				trans.localPosition = new Vector3(startPos + (size * i / 3f), 0, 0);
+				if (!piece.IsValid) continue;
+
+				var trans = _services.PoolService.Spawn<PieceMonoComponent, UniqueId>(piece).transform;
+
+				trans.SetParent(transform);
+				trans.SetAsLastSibling();
+
+				trans.localPosition = new Vector3(xPos, 0, 0);
 			}
 		}
 	}

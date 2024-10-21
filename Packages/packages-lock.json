@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "f846d1c7708032a45490b3d77b39064f3bf7d866"
     },
+    "com.bgtools.playerprefseditor": {
+      "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
+    },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
@@ -92,7 +99,7 @@
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {}
     },

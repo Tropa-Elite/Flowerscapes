@@ -5,15 +5,15 @@ namespace Game.Data
 {
 	public enum SliceColor
 	{
-		ENPTY,
-		WHITE,
-		BLACK,
-		RED,
-		ORANGE,
-		YELLOW,
-		GREEN,
-		BLUE,
-		VIOLET,
+		White,
+		Black,
+		Red,
+		//Orange,
+		Yellow,
+		Green,
+		Blue,
+		//Violet,
+		ColorCount					// The total number of different possible colors
 	}
 
 	public interface IPieceData
@@ -22,6 +22,7 @@ namespace Game.Data
 		IReadOnlyList<SliceColor> Slices { get; }
 	}
 
+	/// <inheritdoc />
 	public class PieceData : IPieceData
 	{
 		public UniqueId Id;

@@ -55,11 +55,14 @@ namespace Game
 
 			MainInstaller.Bind<IGameDataProvider>(gameLogic);
 			MainInstaller.Bind<IGameServices>(gameServices);
+			installer.Bind<IGameLogicInit>(gameLogic);
+			installer.Bind<IGameDataProvider>(gameLogic);
+			installer.Bind<IGameServices>(gameServices);
 
 			_dataService = dataService;
 			_gameLogic = gameLogic;
 			_services = gameServices;
-			_stateMachine = new GameStateMachine(gameLogic, gameServices, installer);
+			_stateMachine = new GameStateMachine(installer);
 			Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
 			System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskExceptionLogging;

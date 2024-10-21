@@ -9,6 +9,7 @@ using Game.Logic;
 using Newtonsoft.Json;
 using Game.Services;
 using UnityEngine;
+using System;
 
 namespace Game.StateMachines
 {
@@ -22,11 +23,11 @@ namespace Game.StateMachines
 		private readonly IGameUiServiceInit _uiService;
 		private readonly IConfigsAdder _configsAdder;
 		private readonly IDataService _dataService;
-		
-		public InitialLoadingState(IGameLogicInit gameLogic, IGameServices services, IInstaller installer)
+
+		public InitialLoadingState(IInstaller installer)
 		{
-			_gameLogic = gameLogic;
-			_services = services;
+			_gameLogic = installer.Resolve<IGameLogicInit>();
+			_services = installer.Resolve<IGameServices>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
 			_configsAdder = installer.Resolve<IConfigsAdder>();
 			_dataService = installer.Resolve<IDataService>();
@@ -46,9 +47,8 @@ namespace Game.StateMachines
 			initial.OnExit(SubscribeEvents);
 			
 			dataLoading.OnEnter(InitPlugins);
-			dataLoading.OnEnter(LoadGameData);
 			dataLoading.WaitingFor(LoadConfigs).Target(uiLoading);
-			dataLoading.OnExit(_gameLogic.Init);
+			dataLoading.OnExit(InitGameLogic);
 			
 			uiLoading.WaitingFor(LoadInitialUi).Target(final);
 			
@@ -75,7 +75,8 @@ namespace Game.StateMachines
 
 		private async Task LoadInitialUi()
 		{
-			await Task.WhenAll(_uiService.LoadUiSetAsync((int) UiSetId.InitialLoadUi));
+			//await Task.WhenAll(_uiService.LoadUiSetAsync((int) UiSetId.InitialLoadUi));
+			await Task.Yield();
 		}
 
 		private async Task LoadConfigs()
@@ -91,28 +92,12 @@ namespace Game.StateMachines
 			_services.AssetResolverService.UnloadAsset(uiConfigs);
 			_services.AssetResolverService.UnloadAsset(gameConfigs);
 			_services.AssetResolverService.UnloadAsset(dataConfigs);*/
-			await Task.CompletedTask;
+			await Task.Yield();
 		}
 
-		private void LoadGameData()
+		private void InitGameLogic()
 		{
-			var time = _services.TimeService.DateTimeUtcNow;
-			var appDataJson = PlayerPrefs.GetString(nameof(AppData), "");
-			var playerDataJson = PlayerPrefs.GetString(nameof(PlayerData), "");
-			var appData = string.IsNullOrEmpty(appDataJson) ? new AppData() : JsonConvert.DeserializeObject<AppData>(appDataJson);
-			var playerData = string.IsNullOrEmpty(playerDataJson) ? new PlayerData() : JsonConvert.DeserializeObject<PlayerData>(playerDataJson);
-
-			if (string.IsNullOrEmpty(appDataJson))
-			{
-				appData.FirstLoginTime = time;
-				appData.LoginTime = time;
-			}
-			
-			appData.LastLoginTime = appData.LoginTime;
-			appData.LoginTime = time;
-			
-			_dataService.AddOrReplaceData(appData);
-			_dataService.AddOrReplaceData(playerData);
+			_gameLogic.Init(_dataService, _services);
 		}
 	}
 }

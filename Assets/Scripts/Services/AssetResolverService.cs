@@ -288,7 +288,7 @@ namespace Game.Services
 
 			if (!assetReference.OperationHandle.IsValid())
 			{
-				Debug.Log($"Loading Scene: ID({typeof(TId).Name}.{id})");
+				Debug.Log($"Loading Scene: ID({assetReference.SubObjectName}.{id})");
 				assetReference.LoadSceneAsync(loadMode, activateOnLoad);
 			}
 

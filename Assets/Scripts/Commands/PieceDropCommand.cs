@@ -131,7 +131,7 @@ namespace Game.Commands
 			foreach (var pieceTile in list)
 			{
 				var piece = pieceTile.Piece;
-				var amount = Math.Clamp(totalSlices, piece.Slices.Count, Constants.Gameplay.PIECE_MAX_SLICES);
+				var amount = Math.Clamp(totalSlices, piece.Slices.Count, Constants.Gameplay.MAX_PIECE_SLICES);
 
 				totalSlices -= amount;
 

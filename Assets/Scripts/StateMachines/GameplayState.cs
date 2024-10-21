@@ -7,6 +7,8 @@ using Game.Services;
 using UnityEngine;
 using Game.Messages;
 using Game.MonoComponent;
+using Game.Utils;
+using Game.Logic;
 
 namespace Game.StateMachines
 {
@@ -17,11 +19,13 @@ namespace Game.StateMachines
 	{
 		private readonly IGameUiService _uiService;
 		private readonly IGameServices _services;
+		private readonly IGameDataProvider _gameDataProvider;
 		private readonly Action<IStatechartEvent> _statechartTrigger;
 		
-		public GameplayState(IGameServices services, IInstaller installer, Action<IStatechartEvent> statechartTrigger)
+		public GameplayState(IInstaller installer, Action<IStatechartEvent> statechartTrigger)
 		{
-			_services = services;
+			_gameDataProvider = installer.Resolve<IGameDataProvider>();
+			_services = installer.Resolve<IGameServices>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
 			_statechartTrigger = statechartTrigger;
 		}
@@ -41,7 +45,7 @@ namespace Game.StateMachines
 			
 			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameplay);
 
-			gameplay.OnEnter(OpenGameplayInit);
+			gameplay.OnEnter(GameplayInit);
 
 			final.OnEnter(UnsubscribeEvents);
 		}
@@ -58,20 +62,28 @@ namespace Game.StateMachines
 		
 		private async Task LoadGameplayAssets()
 		{
-			await _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f);
+			//await _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f);
 
-			var piece = await _services.AssetResolverService.InstantiateAsync(Constants.Prefabs.PIECE, Vector3.zero, Quaternion.identity, null);
-			var piecePool = new GameObjectPool<PieceMonoComponent>((uint)Constants.NUMBER_OF_TILES, piece.GetComponent<PieceMonoComponent>());
+			var piece = await _services.AssetResolverService.InstantiateAsync(
+				Constants.Prefabs.PIECE, 
+				Vector3.right * 10000f, // Move out of the screen
+				Quaternion.identity,
+				GameObject.FindFirstObjectByType<Canvas>().transform);
 
+			var piecePool = new GameObjectPool<PieceMonoComponent>(
+				(uint) (Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS),
+				piece.GetComponent<PieceMonoComponent>());
+
+			piece.SetActive(false);
 			_services.PoolService.AddPool(piecePool);
 
 			GC.Collect();
 			_ = Resources.UnloadUnusedAssets();
 		}
 
-		private void OpenGameplayInit()
+		private void GameplayInit()
 		{
-			_uiService.OpenUiSet((int) UiSetId.GameplayUi, false);
+			//_uiService.OpenUiSet((int) UiSetId.GameplayUi, false);
 
 			_services.MessageBrokerService.Publish(new OnGameInitMessage());
 		}
