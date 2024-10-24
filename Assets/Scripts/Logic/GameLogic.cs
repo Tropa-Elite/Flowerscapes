@@ -44,6 +44,9 @@ namespace Game.Logic
 	/// </summary>
 	public interface IGameLogic : IGameDataProvider
 	{
+		/// <inheritdoc cref="IMessageBrokerService"/>
+		IMessageBrokerService MessageBrokerService { get; }
+
 		/// <inheritdoc cref="IAppLogic"/>
 		IAppLogic AppLogic { get; }
 		/// <inheritdoc cref="IRngLogic"/>
@@ -92,12 +95,16 @@ namespace Game.Logic
 		/// <inheritdoc />
 		public IGameplayBoardLogic GameplayBoardLogic { get; }
 
+		/// <inheritdoc />
+		public IMessageBrokerService MessageBrokerService { get; }
+
 		public GameLogic(IInstaller installer)
 		{
 			var configsProvider = installer.Resolve<IConfigsProvider>();
 			var dataProvider = installer.Resolve<IDataProvider>();
 			var timeService = installer.Resolve<ITimeService>();
 
+			MessageBrokerService = installer.Resolve<IMessageBrokerService>();
 			AppLogic = new AppLogic(configsProvider, dataProvider, timeService);
 			EntityFactoryLogic = new EntityFactoryLogic(this, configsProvider, dataProvider, timeService);
 			CurrencyLogic = new CurrencyLogic(configsProvider, dataProvider, timeService);
@@ -150,7 +157,7 @@ namespace Game.Logic
 				return;
 			}
 
-			GameplayBoardLogic.RefillInputPieces(EntityFactoryLogic.CreatePiece);
+			GameplayBoardLogic.RefillPieceDeck(EntityFactoryLogic.CreatePiece);
 			GameplayBoardLogic.RefillBoard(EntityFactoryLogic.CreatePiece, RngLogic);
 		}
 	}

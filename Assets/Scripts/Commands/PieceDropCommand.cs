@@ -1,12 +1,15 @@
 ﻿using Game.Data;
+using Game.Ids;
 using Game.Logic;
 using Game.Logic.Shared;
+using Game.Messages;
 using Game.MonoComponent;
 using Game.Utils;
 using GameLovers;
 using GameLovers.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Game.Commands
 {
@@ -15,33 +18,40 @@ namespace Game.Commands
 	/// </summary>
 	public struct PieceDropCommand : IGameCommand<IGameLogic>
 	{
-		public PieceMonoComponent piece;
+		public UniqueId PieceId;
+		public int Row;
+		public int Column;
+
+		public PieceDropCommand(UniqueId pieceId, int row, int column)
+		{
+			PieceId = pieceId;
+			Row = row;
+			Column = column;
+		}
 
 		/// <inheritdoc />
 		public void Execute(IGameLogic gameLogic)
 		{
-			if(!piece.Raycaster.RaycastPoint(piece.RectTransform.position, out var hits))
+			if (gameLogic.GameplayBoardDataProvider.TryGetPieceFromTile(Row, Column, out _))
 			{
-				return;
+				throw new LogicException($"There is already a piece on tile ({Row}, {Column})");
 			}
 
-			if (!hits[0].gameObject.TryGetComponent<TileMonoComponent>(out var tile))
+			gameLogic.GameplayBoardLogic.SetPieceOnTile(PieceId, Row, Column);
+			gameLogic.GameplayBoardLogic.PieceDeck.Remove(PieceId);
+
+			if(gameLogic.GameplayBoardLogic.PieceDeck.Count == 0)
 			{
-				return;
+				gameLogic.GameplayBoardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
 			}
 
-			if(gameLogic.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out _))
-			{
-				return;
-			}
-
-			gameLogic.GameplayBoardLogic.SetPieceOnTile(tile.Row, tile.Column, piece.Id);
-
+			gameLogic.MessageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = PieceId, Row = Row, Column = Column });
+			/*
 			// TODO: Check if there is any potential match first - Case B
 			// TODO: Move this to GameplayBoardLogic
 
-			var pieceData = gameLogic.GameplayBoardLogic.Pieces.GetOriginValue(piece.Id);
-			var pieceList = SorroundingPiecesList(gameLogic, tile);
+			var pieceData = gameLogic.GameplayBoardLogic.Pieces.GetOriginValue(PieceId);
+			var pieceList = SorroundingPiecesList(gameLogic);
 			var colorCount = ColorCount(pieceData);
 
 			for (var i = 0; i < colorCount; i++)
@@ -54,7 +64,7 @@ namespace Game.Commands
 				FillSlicesInTiles(pieceList, color, totalSlices);
 			}
 
-			CheckMatches(gameLogic, pieceList);
+			CheckMatches(gameLogic, pieceList);*/
 		}
 
 		private void CheckMatches(IGameLogic gameLogic, List<TilePiece> list)
@@ -145,30 +155,30 @@ namespace Game.Commands
 			}
 		}
 
-		private List<TilePiece> SorroundingPiecesList(IGameLogic gameLogic, TileMonoComponent tile)
+		private List<TilePiece> SorroundingPiecesList(IGameLogic gameLogic)
 		{
 			var list = new List<TilePiece>();
 
-			if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(tile.Row, tile.Column, out var pieceCenter))
+			if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(Row, Column, out var pieceCenter))
 			{
-				list.Add(new TilePiece { Row = tile.Row, Column = tile.Column, Piece = pieceCenter });
+				list.Add(new TilePiece { Row = Row, Column = Column, Piece = pieceCenter });
 			}
 
 			for (var i = -1; i < 2; i++)
 			{
 				if (i == 0) continue;
-				if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(tile.Row + i, tile.Column, out var piece))
+				if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(Row + i, Column, out var piece))
 				{
-					list.Add(new TilePiece { Row = tile.Row, Column = tile.Column, Piece = pieceCenter });
+					list.Add(new TilePiece { Row = Row, Column = Column, Piece = pieceCenter });
 				}
 			}
 
 			for (var i = -1; i < 2; i++)
 			{
 				if(i == 0) continue;
-				if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(tile.Row, tile.Column + 1, out var piece))
+				if (gameLogic.GameplayBoardLogic.TryGetPieceDataFromTile(Row, Column + 1, out var piece))
 				{
-					list.Add(new TilePiece { Row = tile.Row, Column = tile.Column, Piece = pieceCenter });
+					list.Add(new TilePiece { Row = Row, Column = Column, Piece = pieceCenter });
 				}
 			}
 

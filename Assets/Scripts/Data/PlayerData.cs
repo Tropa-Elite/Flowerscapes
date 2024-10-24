@@ -20,7 +20,7 @@ namespace Game.Data
 		};
 
 		public Dictionary<ulong, PieceData> Pieces = new Dictionary<ulong, PieceData>();
-		public List<UniqueId> InputPieces = new List<UniqueId>(Constants.Gameplay.MAX_INPUT_PIECES);
+		public List<UniqueId> PieceDeck = new List<UniqueId>(Constants.Gameplay.MAX_DECK_PIECES);
 		public TileData[,] Board = new TileData[Constants.Gameplay.BOARD_ROWS, Constants.Gameplay.BOARD_COLUMNS];
 	}
 }

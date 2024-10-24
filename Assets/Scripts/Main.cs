@@ -51,7 +51,7 @@ namespace Game
 			installer.Bind<IDataService, IDataProvider>(dataService);
 
 			var gameLogic = new GameLogic(installer);
-			var gameServices = new GameServices(installer);
+			var gameServices = new GameServices(installer, gameLogic);
 
 			MainInstaller.Bind<IGameDataProvider>(gameLogic);
 			MainInstaller.Bind<IGameServices>(gameServices);

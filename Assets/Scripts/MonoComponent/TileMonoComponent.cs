@@ -40,6 +40,14 @@ namespace Game.MonoComponent
 			_column = int.Parse(name[2]);
 		}
 
+		public void SetPiece(PieceMonoComponent piece)
+		{
+			piece.RectTransform.SetParent(transform);
+			piece.RectTransform.SetAsLastSibling();
+
+			piece.RectTransform.anchoredPosition = Vector3.zero;
+		}
+
 		private void OnGameInit(OnGameInitMessage message)
 		{
 			if(!_dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(_row, _column, out var pieceData))
@@ -47,12 +55,7 @@ namespace Game.MonoComponent
 				return;
 			}
 
-			var piece = _services.PoolService.Spawn<PieceMonoComponent, UniqueId>(pieceData.Id);
-
-			piece.RectTransform.SetParent(transform);
-			piece.RectTransform.SetAsLastSibling();
-
-			piece.RectTransform.anchoredPosition = Vector3.zero;
+			SetPiece(_services.PoolService.Spawn<PieceMonoComponent, UniqueId>(pieceData.Id));
 		}
 	}
 }

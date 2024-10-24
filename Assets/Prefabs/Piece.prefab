@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4645758624398740786}
   - component: {fileID: 2872402913081667198}
+  - component: {fileID: 8881406675318454352}
   - component: {fileID: 9104468920057316318}
   - component: {fileID: 1298152742553654165}
   m_Layer: 5
@@ -52,6 +53,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7809686377703402429}
   m_CullTransparentMesh: 1
+--- !u!114 &8881406675318454352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7809686377703402429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2887dfcf89e1674f973e52f1dec5073, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rectTransform: {fileID: 4645758624398740786}
+  _canvasTransform: {fileID: 0}
 --- !u!114 &9104468920057316318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,15 +80,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rectTransform: {fileID: 4645758624398740786}
-  _raycaster: {fileID: 0}
-  _chunks:
+  _draggable: {fileID: 8881406675318454352}
+  _canvasRaycaster: {fileID: 0}
+  _slices:
   - {fileID: 8208543524263208304}
   - {fileID: 4611391753120854639}
   - {fileID: 8607300941468711882}
   - {fileID: 4855872143750127771}
   - {fileID: 8929369716958455863}
   - {fileID: 5985040000401546294}
-  _animator: {fileID: 0}
 --- !u!61 &1298152742553654165
 BoxCollider2D:
   m_ObjectHideFlags: 0

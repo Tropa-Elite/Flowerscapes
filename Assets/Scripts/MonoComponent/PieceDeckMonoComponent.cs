@@ -4,11 +4,12 @@ using Game.Messages;
 using Game.Services;
 using Game.Utils;
 using GameLovers.Services;
+using System;
 using UnityEngine;
 
 namespace Game.MonoComponent
 {
-	public class PieceSpawnerMonoComponent : MonoBehaviour
+	public class PieceDeckMonoComponent : MonoBehaviour
 	{
 		[SerializeField] private RectTransform _rectTransform;
 
@@ -26,6 +27,7 @@ namespace Game.MonoComponent
 			_dataProvider = MainInstaller.Resolve<IGameDataProvider>();
 
 			_services.MessageBrokerService.Subscribe<OnGameInitMessage>(OnGameInit);
+			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDropped);
 		}
 
 		private void OnDestroy()
@@ -43,7 +45,7 @@ namespace Game.MonoComponent
 			var distance = _rectTransform.rect.width / 4f;
 			var xPos = -distance*2;
 
-			foreach (var pieceId in _dataProvider.GameplayBoardDataProvider.InputPieces)
+			foreach (var pieceId in _dataProvider.GameplayBoardDataProvider.PieceDeck)
 			{
 				xPos += distance;
 
@@ -55,6 +57,15 @@ namespace Game.MonoComponent
 				piece.RectTransform.SetAsLastSibling();
 
 				piece.RectTransform.anchoredPosition = new Vector3(xPos, 0, 0);
+			}
+		}
+
+		private void OnPieceDropped(OnPieceDroppedMessage message)
+		{
+			// Check if the input board was just refilled
+			if(_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
+			{
+				SpawnPieces();
 			}
 		}
 	}

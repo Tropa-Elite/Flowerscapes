@@ -68,7 +68,7 @@ namespace Game.Services
 		/// <inheritdoc />
 		public IAnalyticsService AnalyticsService { get; }
 
-		public GameServices(IInstaller installer)
+		public GameServices(IInstaller installer, IGameLogic gameLogic)
 		{
 			MessageBrokerService = installer.Resolve<IMessageBrokerService>();
 			TimeService = installer.Resolve<ITimeService>();
@@ -78,6 +78,7 @@ namespace Game.Services
 			PoolService = installer.Resolve<IPoolService>();
 			TickService = installer.Resolve<ITickService>();
 			CoroutineService = installer.Resolve<ICoroutineService>();
+			CommandService = new CommandService<IGameLogic>(gameLogic);
 		}
 	}
 }

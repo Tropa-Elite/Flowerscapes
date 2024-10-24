@@ -16,7 +16,7 @@ namespace Game.Logic
 	public interface IGameplayBoardDataProvider
 	{
 		IObservableDictionaryReader<UniqueId, IPieceData> Pieces { get; }
-		IObservableListReader<UniqueId> InputPieces { get; }
+		IObservableListReader<UniqueId> PieceDeck { get; }
 
 		bool TryGetPieceFromTile(int row, int column, out IPieceData pieceCopy);
 	}
@@ -25,15 +25,15 @@ namespace Game.Logic
 	public interface IGameplayBoardLogic : IGameplayBoardDataProvider
 	{
 		new IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> Pieces { get; }
-		new IObservableList<UniqueId> InputPieces { get; }
+		new IObservableList<UniqueId> PieceDeck { get; }
 
 		bool TryGetPieceDataFromTile(int row, int column, out PieceData piece);
 
-		void SetPieceOnTile(int row, int column, UniqueId id);
+		void SetPieceOnTile(UniqueId pieceId, int row, int column);
 
 		void CleanUpTile(int row, int column);
 
-		void RefillInputPieces(Func<PieceData> createPieceFunc);
+		void RefillPieceDeck(Func<PieceData> createPieceFunc);
 
 		void RefillBoard(Func<PieceData> createPieceFunc, IRngLogic rngLogic);
 	}
@@ -42,16 +42,16 @@ namespace Game.Logic
 	public class GameplayBoardLogic : AbstractBaseLogic<PlayerData>, IGameplayBoardLogic, IGameLogicInitializer
 	{
 		private IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> _pieces;
-		private IObservableList<UniqueId> _inputPieces;
+		private IObservableList<UniqueId> _pieceDeck;
 
 		/// <inheritdoc />
 		public IObservableDictionaryReader<UniqueId, IPieceData> Pieces => _pieces;
 		/// <inheritdoc />
 		IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> IGameplayBoardLogic.Pieces => _pieces;
 		/// <inheritdoc />
-		public IObservableList<UniqueId> InputPieces => _inputPieces;
+		public IObservableList<UniqueId> PieceDeck => _pieceDeck;
 		/// <inheritdoc />
-		IObservableListReader<UniqueId> IGameplayBoardDataProvider.InputPieces => _inputPieces;
+		IObservableListReader<UniqueId> IGameplayBoardDataProvider.PieceDeck => _pieceDeck;
 
 		public GameplayBoardLogic(IConfigsProvider configsProvider, IDataProvider dataProvider, ITimeService timeService) :
 			base(configsProvider, dataProvider, timeService)
@@ -61,7 +61,7 @@ namespace Game.Logic
 		/// <inheritdoc />
 		public void Init()
 		{
-			_inputPieces = new ObservableList<UniqueId>(Data.InputPieces);
+			_pieceDeck = new ObservableList<UniqueId>(Data.PieceDeck);
 			_pieces = new ObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData>(Data.Pieces,
 				originPair => new KeyValuePair<UniqueId, IPieceData>(originPair.Key, originPair.Value),
 				(key, value) => new KeyValuePair<ulong, PieceData>(key, value as PieceData));
@@ -100,11 +100,11 @@ namespace Game.Logic
 		}
 
 		/// <inheritdoc />
-		public void SetPieceOnTile(int row, int column, UniqueId piece)
+		public void SetPieceOnTile(UniqueId pieceId, int row, int column)
 		{
 			if (Data.Board[row, column] != null)
 			{
-				Data.Board[row, column].Piece = piece;
+				Data.Board[row, column].Piece = pieceId;
 
 				return;
 			}
@@ -113,7 +113,7 @@ namespace Game.Logic
 			{
 				Row = row,
 				Column = column,
-				Piece = piece
+				Piece = pieceId
 			};
 		}
 
@@ -126,18 +126,18 @@ namespace Game.Logic
 		}
 
 		/// <inheritdoc />
-		public void RefillInputPieces(Func<PieceData> createPieceFunc)
+		public void RefillPieceDeck(Func<PieceData> createPieceFunc)
 		{
-			foreach (var id in InputPieces)
+			foreach (var id in PieceDeck)
 			{
 				_pieces.Remove(id);
 			}
 
-			InputPieces.Clear();
+			PieceDeck.Clear();
 
-			for (var i = 0; i < Constants.Gameplay.MAX_INPUT_PIECES; i++)
+			for (var i = 0; i < Constants.Gameplay.MAX_DECK_PIECES; i++)
 			{
-				InputPieces.Add(createPieceFunc().Id);
+				PieceDeck.Add(createPieceFunc().Id);
 			}
 		}
 
@@ -162,10 +162,9 @@ namespace Game.Logic
 			{
 				pos = rngLogic.Range(pos, totalSpace - totalPieces + i);
 
-				SetPieceOnTile(
+				SetPieceOnTile(createPieceFunc().Id,
 					pos / Constants.Gameplay.BOARD_COLUMNS,
-					pos % Constants.Gameplay.BOARD_COLUMNS,
-					createPieceFunc().Id);
+					pos % Constants.Gameplay.BOARD_COLUMNS);
 			}
 		}
 	}
