@@ -43,18 +43,18 @@ namespace Game.MonoComponent
 			var distance = _rectTransform.rect.width / 4f;
 			var xPos = -distance*2;
 
-			foreach (var piece in _dataProvider.GameplayBoardDataProvider.InputPieces)
+			foreach (var pieceId in _dataProvider.GameplayBoardDataProvider.InputPieces)
 			{
 				xPos += distance;
 
-				if (!piece.IsValid) continue;
+				if (!pieceId.IsValid) continue;
 
-				var trans = _services.PoolService.Spawn<PieceMonoComponent, UniqueId>(piece).transform;
+				var piece = _services.PoolService.Spawn<PieceMonoComponent, UniqueId>(pieceId);
 
-				trans.SetParent(transform);
-				trans.SetAsLastSibling();
+				piece.RectTransform.SetParent(transform);
+				piece.RectTransform.SetAsLastSibling();
 
-				trans.localPosition = new Vector3(xPos, 0, 0);
+				piece.RectTransform.anchoredPosition = new Vector3(xPos, 0, 0);
 			}
 		}
 	}

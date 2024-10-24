@@ -52,7 +52,7 @@ namespace Game.Logic.Shared
 			{
 				piece.Slices.Add(lastColor);
 
-				if(slicesCount - i == colorCount)
+				if (slicesCount - i == colorCount)
 				{
 					colorCount--;
 					lastColor = (SliceColor)_gameLogic.RngLogic.Range(0, (int)SliceColor.ColorCount);

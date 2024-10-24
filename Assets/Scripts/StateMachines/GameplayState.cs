@@ -64,14 +64,20 @@ namespace Game.StateMachines
 		{
 			//await _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f);
 
+			var poolTransform = new GameObject("PiecePool").GetComponent<Transform>();
+
+			poolTransform.SetParent(GameObject.FindFirstObjectByType<Canvas>().transform);
+			poolTransform.localPosition = Vector3.zero;
+			poolTransform.localScale = Vector3.one;
+
 			var piece = await _services.AssetResolverService.InstantiateAsync(
 				Constants.Prefabs.PIECE, 
 				Vector3.right * 10000f, // Move out of the screen
 				Quaternion.identity,
-				GameObject.FindFirstObjectByType<Canvas>().transform);
+				poolTransform);
 
 			var piecePool = new GameObjectPool<PieceMonoComponent>(
-				(uint) (Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS),
+				(uint) (Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS) / 2,
 				piece.GetComponent<PieceMonoComponent>());
 
 			piece.SetActive(false);

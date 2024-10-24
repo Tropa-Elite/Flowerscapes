@@ -135,6 +135,8 @@ quantum_server/packages
 EditorUserSettings.*
 *.gz
 **/AOTGenerationConfig.asset
+**/Assets/Libs/LiveScriptReload
+**/Assets/Libs/LiveScriptReload.meta
 **/Assets/Libs/Sirenix/Assemblies/AOT/
 **/Assets/Libs/Sirenix/Assemblies/AOT.meta
 !**/Assets/Libs/iOS Project Builder/*

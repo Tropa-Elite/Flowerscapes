@@ -51,9 +51,9 @@
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.gamelovers.dataextensions": "0.5.0"
+        "com.gamelovers.dataextensions": "0.6.0"
       },
-      "hash": "b0b75245984a2b64797fefea729ec5ff1b533d0a"
+      "hash": "b2c716e187208ea270bb92934c5d028e04fea22b"
     },
     "com.gamelovers.statechart": {
       "version": "https://github.com/CoderGamester/com.gamelovers.statechart.git",

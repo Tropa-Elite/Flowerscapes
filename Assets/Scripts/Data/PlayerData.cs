@@ -19,7 +19,7 @@ namespace Game.Data
 			{ GameId.HardCurrency, 10 }
 		};
 
-		public Dictionary<UniqueId, PieceData> Pieces = new Dictionary<UniqueId, PieceData>();
+		public Dictionary<ulong, PieceData> Pieces = new Dictionary<ulong, PieceData>();
 		public List<UniqueId> InputPieces = new List<UniqueId>(Constants.Gameplay.MAX_INPUT_PIECES);
 		public TileData[,] Board = new TileData[Constants.Gameplay.BOARD_ROWS, Constants.Gameplay.BOARD_COLUMNS];
 	}

@@ -64,7 +64,6 @@ namespace Game
 			_services = gameServices;
 			_stateMachine = new GameStateMachine(installer);
 			Screen.sleepTimeout = SleepTimeout.NeverSleep;
-
 			System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskExceptionLogging;
 
 			DontDestroyOnLoad(this);
@@ -79,8 +78,6 @@ namespace Game
 
 		private void Start()
 		{
-			_services.Init();
-
 			_ = OnStart();
 		}
 

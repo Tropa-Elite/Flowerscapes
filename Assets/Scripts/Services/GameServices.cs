@@ -79,13 +79,5 @@ namespace Game.Services
 			TickService = installer.Resolve<ITickService>();
 			CoroutineService = installer.Resolve<ICoroutineService>();
 		}
-
-		/// <summary>
-		/// <inheritdoc cref="IServiceInit.Init(IGameServices)"/>
-		/// </summary>
-		public void Init()
-		{
-			// Init any needed service
-		}
 	}
 }

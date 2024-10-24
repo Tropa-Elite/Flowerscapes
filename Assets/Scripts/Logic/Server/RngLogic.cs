@@ -44,5 +44,6 @@ namespace Game.Logic.Shared
 		public RngLogic(IDataProvider dataProvider) : base(dataProvider.GetData<RngData>())
 		{
 		}
+
 	}
 }

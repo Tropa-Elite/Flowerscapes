@@ -24,7 +24,7 @@ namespace Game.Logic
 	/// <inheritdoc />
 	public interface IGameplayBoardLogic : IGameplayBoardDataProvider
 	{
-		new IObservableResolverDictionary<UniqueId, IPieceData, UniqueId, PieceData> Pieces { get; }
+		new IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> Pieces { get; }
 		new IObservableList<UniqueId> InputPieces { get; }
 
 		bool TryGetPieceDataFromTile(int row, int column, out PieceData piece);
@@ -41,13 +41,13 @@ namespace Game.Logic
 	/// <inheritdoc cref="IGameplayBoardLogic"/>
 	public class GameplayBoardLogic : AbstractBaseLogic<PlayerData>, IGameplayBoardLogic, IGameLogicInitializer
 	{
-		private IObservableResolverDictionary<UniqueId, IPieceData, UniqueId, PieceData> _pieces;
+		private IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> _pieces;
 		private IObservableList<UniqueId> _inputPieces;
 
 		/// <inheritdoc />
 		public IObservableDictionaryReader<UniqueId, IPieceData> Pieces => _pieces;
 		/// <inheritdoc />
-		IObservableResolverDictionary<UniqueId, IPieceData, UniqueId, PieceData> IGameplayBoardLogic.Pieces => _pieces;
+		IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> IGameplayBoardLogic.Pieces => _pieces;
 		/// <inheritdoc />
 		public IObservableList<UniqueId> InputPieces => _inputPieces;
 		/// <inheritdoc />
@@ -62,9 +62,9 @@ namespace Game.Logic
 		public void Init()
 		{
 			_inputPieces = new ObservableList<UniqueId>(Data.InputPieces);
-			_pieces = new ObservableResolverDictionary<UniqueId, IPieceData, UniqueId, PieceData>(Data.Pieces,
+			_pieces = new ObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData>(Data.Pieces,
 				originPair => new KeyValuePair<UniqueId, IPieceData>(originPair.Key, originPair.Value),
-				(key, value) => new KeyValuePair<UniqueId, PieceData>(key, value as PieceData));
+				(key, value) => new KeyValuePair<ulong, PieceData>(key, value as PieceData));
 		}
 
 		/// <inheritdoc />
@@ -87,7 +87,7 @@ namespace Game.Logic
 				return false;
 			}
 
-			if (!Data.Pieces.TryGetValue(Data.Board[row, column].Piece, out var pieceData))
+			if (Data.Board[row, column] == null || !_pieces.TryGetOriginValue(Data.Board[row, column].Piece, out var pieceData))
 			{
 				piece = null;
 
@@ -128,6 +128,11 @@ namespace Game.Logic
 		/// <inheritdoc />
 		public void RefillInputPieces(Func<PieceData> createPieceFunc)
 		{
+			foreach (var id in InputPieces)
+			{
+				_pieces.Remove(id);
+			}
+
 			InputPieces.Clear();
 
 			for (var i = 0; i < Constants.Gameplay.MAX_INPUT_PIECES; i++)
@@ -139,10 +144,21 @@ namespace Game.Logic
 		/// <inheritdoc />
 		public void RefillBoard(Func<PieceData> createPieceFunc, IRngLogic rngLogic)
 		{
+			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			{
+				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				{
+					if (TryGetPieceDataFromTile(i, j, out var piece))
+					{
+						CleanUpTile(i, j);
+					}
+				}
+			}
+
 			var totalSpace = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
 			var totalPieces = rngLogic.Range(totalSpace / 4, totalSpace / 2);
 
-			for(int i = 0, pos = 0; i < totalPieces; i++)
+			for (int i = 0, pos = 0; i < totalPieces; i++)
 			{
 				pos = rngLogic.Range(pos, totalSpace - totalPieces + i);
 
