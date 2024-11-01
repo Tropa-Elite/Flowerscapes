@@ -9,6 +9,10 @@ using Game.Messages;
 using Game.MonoComponent;
 using Game.Utils;
 using Game.Logic;
+using Game.Presenters;
+using NUnit.Framework;
+using System.Collections.Generic;
+using Game.Commands;
 
 namespace Game.StateMachines
 {
@@ -17,6 +21,10 @@ namespace Game.StateMachines
 	/// </summary>
 	public class GameplayState
 	{
+		public static readonly IStatechartEvent GAME_OVER_EVENT = new StatechartEvent("Game Over Event");
+
+		private static readonly IStatechartEvent RESTART_CLICKED_EVENT = new StatechartEvent("Restart Button Clicked Event");
+
 		private readonly IGameUiService _uiService;
 		private readonly IGameServices _services;
 		private readonly IGameDataProvider _gameDataProvider;
@@ -38,16 +46,32 @@ namespace Game.StateMachines
 			var initial = stateFactory.Initial("Initial");
 			var final = stateFactory.Final("Final");
 			var gameplayLoading = stateFactory.TaskWait("Gameplay Loading");
+			var gameStateCheck = stateFactory.Choice("GameOver Check");
 			var gameplay = stateFactory.State("Gameplay");
-			
+			var gameOver = stateFactory.State("GameOver");
+
 			initial.Transition().Target(gameplayLoading);
 			initial.OnExit(SubscribeEvents);
 			
-			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameplay);
+			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameStateCheck);
 
-			gameplay.OnEnter(GameplayInit);
+			gameStateCheck.OnEnter(GameInit);
+			gameStateCheck.Transition().Condition(IsGameOver).Target(gameOver);
+			gameStateCheck.Transition().Target(gameplay);
+
+			gameplay.Event(GAME_OVER_EVENT).Target(gameOver);
+
+			gameOver.OnEnter(OpenGameOverUi);
+			gameOver.Event(RESTART_CLICKED_EVENT).OnTransition(RestartGame).Target(gameStateCheck);
+			gameOver.OnExit(CloseGameOverUi);
 
 			final.OnEnter(UnsubscribeEvents);
+		}
+
+		private void SubscribeEvents()
+		{
+			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
+			_services.MessageBrokerService.Subscribe<OnGameRestartClickedMessage>(OnGameRestartClickedMessage);
 		}
 
 		private void UnsubscribeEvents()
@@ -55,15 +79,45 @@ namespace Game.StateMachines
 			_services.MessageBrokerService.UnsubscribeAll(this);
 		}
 
-		private void SubscribeEvents()
+		private void OnGameOverMessage(OnGameOverMessage message)
 		{
-			// Add any events to subscribe
+			_statechartTrigger(GAME_OVER_EVENT);
 		}
-		
+
+		private void OnGameRestartClickedMessage(OnGameRestartClickedMessage message)
+		{
+			_statechartTrigger(RESTART_CLICKED_EVENT);
+		}
+
+		private void GameInit()
+		{
+			_services.MessageBrokerService.Publish(new OnGameInitMessage());
+		}
+
+		private void RestartGame()
+		{
+			_services.CommandService.ExecuteCommand(new RestartGameCommand());
+		}
+
+		private bool IsGameOver()
+		{
+			return _gameDataProvider.GameplayBoardDataProvider.IsGameOver();
+		}
+
+		private void OpenGameOverUi()
+		{
+			_ = _uiService.OpenUiAsync<GameOverScreenPresenter>();
+		}
+
+		private void CloseGameOverUi()
+		{
+			_uiService.CloseUi<GameOverScreenPresenter>();
+		}
+
+		// TODO: Move this to a separate code file. Needs a pattern or structure for it
 		private async Task LoadGameplayAssets()
 		{
-			//await _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f);
-
+			var tasks = new List<Task> { _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f) };
 			var poolTransform = new GameObject("PiecePool").GetComponent<Transform>();
 
 			poolTransform.SetParent(GameObject.FindFirstObjectByType<Canvas>().transform);
@@ -83,15 +137,10 @@ namespace Game.StateMachines
 			piece.SetActive(false);
 			_services.PoolService.AddPool(piecePool);
 
+			await Task.WhenAll(tasks);
+
 			GC.Collect();
 			_ = Resources.UnloadUnusedAssets();
-		}
-
-		private void GameplayInit()
-		{
-			//_uiService.OpenUiSet((int) UiSetId.GameplayUi, false);
-
-			_services.MessageBrokerService.Publish(new OnGameInitMessage());
 		}
 	}
 }

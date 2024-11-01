@@ -81,18 +81,17 @@ namespace Game.StateMachines
 
 		private async Task LoadConfigs()
 		{
-			/*var uiConfigs = await _services.AssetResolverService.LoadAssetAsync<UiConfigs>(AddressableId.Addressables_Configs_UiConfigs.GetConfig().Address);
-			var gameConfigs = await _services.AssetResolverService.LoadAssetAsync<GameConfigs>(AddressableId.Addressables_Configs_GameConfigs.GetConfig().Address);
-			var dataConfigs = await _services.AssetResolverService.LoadAssetAsync<DataConfigs>(AddressableId.Addressables_Configs_DataConfigs.GetConfig().Address);
+			var uiConfigs = await _services.AssetResolverService.LoadAssetAsync<UiConfigs>(AddressableId.Prefabs_Configs_UiConfigs.GetConfig().Address);
+			//var gameConfigs = await _services.AssetResolverService.LoadAssetAsync<GameConfigs>(AddressableId.Addressables_Configs_GameConfigs.GetConfig().Address);
+			//var dataConfigs = await _services.AssetResolverService.LoadAssetAsync<DataConfigs>(AddressableId.Addressables_Configs_DataConfigs.GetConfig().Address);
 			
 			_uiService.Init(uiConfigs);
-			_configsAdder.AddSingletonConfig(gameConfigs.Config);
-			_configsAdder.AddConfigs(data => (int) data.Id, dataConfigs.Configs);
+			//_configsAdder.AddSingletonConfig(gameConfigs.Config);
+			//_configsAdder.AddConfigs(data => (int) data.Id, dataConfigs.Configs);
 			
 			_services.AssetResolverService.UnloadAsset(uiConfigs);
-			_services.AssetResolverService.UnloadAsset(gameConfigs);
-			_services.AssetResolverService.UnloadAsset(dataConfigs);*/
-			await Task.Yield();
+			//_services.AssetResolverService.UnloadAsset(gameConfigs);
+			//_services.AssetResolverService.UnloadAsset(dataConfigs);
 		}
 
 		private void InitGameLogic()

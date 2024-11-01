@@ -12,5 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0912607e574b4dacb5cee8cd4d10b13, type: 3}
   m_Name: UiConfigs
   m_EditorClassIdentifier: 
-  _configs: []
-  _sets: []
+  _loadingSpinnerType: 
+  _configs:
+  - AddressableAddress: Prefabs/UI/GameOver.prefab
+    Layer: 0
+    UiType: Game.Presenters.GameOverScreenPresenter, Assembly-CSharp, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  _sets:
+  - SetId: 0
+    UiConfigsType: []
+  - SetId: 1
+    UiConfigsType:
+    - Game.Presenters.GameOverScreenPresenter, Assembly-CSharp, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null

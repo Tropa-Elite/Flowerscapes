@@ -34,9 +34,9 @@ namespace Game.Services
 		/// <inheritdoc />
 		public async Task LoadGameUiSet(UiSetId uiSetId, float loadingCap)
 		{
-			var loadingScreen = GetUi<LoadingScreenPresenter>();
 			var tasks = LoadUiSetAsync((int)uiSetId);
-			var initialLoadingPercentage = loadingScreen.LoadingPercentage;
+			//var loadingScreen = GetUi<LoadingScreenPresenter>();
+			var initialLoadingPercentage = 0f;// loadingScreen.LoadingPercentage;
 			var loadingBuffer = tasks.Length / loadingCap - initialLoadingPercentage;
 			var loadedUiCount = 0f;
 
@@ -47,10 +47,10 @@ namespace Game.Services
 
 				loadedUiCount++;
 
-				loadingScreen.SetLoadingPercentage(initialLoadingPercentage + loadedUiCount / loadingBuffer);
+				//loadingScreen.SetLoadingPercentage(initialLoadingPercentage + loadedUiCount / loadingBuffer);
 			}
 
-			loadingScreen.SetLoadingPercentage(loadingCap);
+			//loadingScreen.SetLoadingPercentage(loadingCap);
 		}
 	}
 }

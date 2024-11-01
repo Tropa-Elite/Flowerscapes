@@ -32,20 +32,27 @@ namespace Game.Commands
 		/// <inheritdoc />
 		public void Execute(IGameLogic gameLogic)
 		{
-			if (gameLogic.GameplayBoardDataProvider.TryGetPieceFromTile(Row, Column, out _))
+			var boardLogic = gameLogic.GameplayBoardLogic;
+
+			if (boardLogic.TryGetPieceFromTile(Row, Column, out _))
 			{
 				throw new LogicException($"There is already a piece on tile ({Row}, {Column})");
 			}
 
-			gameLogic.GameplayBoardLogic.SetPieceOnTile(PieceId, Row, Column);
-			gameLogic.GameplayBoardLogic.PieceDeck.Remove(PieceId);
+			boardLogic.SetPieceOnTile(PieceId, Row, Column);
+			boardLogic.PieceDeck.Remove(PieceId);
 
-			if(gameLogic.GameplayBoardLogic.PieceDeck.Count == 0)
+			if(boardLogic.PieceDeck.Count == 0)
 			{
-				gameLogic.GameplayBoardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
+				boardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
 			}
 
 			gameLogic.MessageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = PieceId, Row = Row, Column = Column });
+
+			if (boardLogic.IsGameOver())
+			{
+				gameLogic.MessageBrokerService.Publish(new OnGameOverMessage());
+			}
 			/*
 			// TODO: Check if there is any potential match first - Case B
 			// TODO: Move this to GameplayBoardLogic

@@ -19,6 +19,8 @@ namespace Game.Logic
 		IObservableListReader<UniqueId> PieceDeck { get; }
 
 		bool TryGetPieceFromTile(int row, int column, out IPieceData pieceCopy);
+
+		bool IsGameOver();
 	}
 
 	/// <inheritdoc />
@@ -95,6 +97,27 @@ namespace Game.Logic
 			}
 
 			piece = pieceData;
+
+			return true;
+		}
+
+		/// <inheritdoc />
+		public bool IsGameOver()
+		{
+			var tileCount = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
+
+			if(_pieces.Count - _pieceDeck.Count < tileCount) return false;
+
+			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			{
+				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				{
+					if (Data.Board[i, j] == null || !Data.Board[i, j].Piece.IsValid)
+					{
+						return false;
+					}
+				}
+			}
 
 			return true;
 		}
