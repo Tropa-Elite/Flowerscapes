@@ -181,9 +181,9 @@ namespace Game.Logic
 			var totalSpace = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
 			var totalPieces = rngLogic.Range(totalSpace / 4, totalSpace / 2);
 
-			for (int i = 0, pos = 0; i < totalPieces; i++)
+			for (int i = 0, pos = -1; i < totalPieces; i++)
 			{
-				pos = rngLogic.Range(pos, totalSpace - totalPieces + i);
+				pos = rngLogic.Range(pos + 1, totalSpace - totalPieces + i);
 
 				SetPieceOnTile(createPieceFunc().Id,
 					pos / Constants.Gameplay.BOARD_COLUMNS,

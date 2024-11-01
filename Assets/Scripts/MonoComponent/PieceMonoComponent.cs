@@ -83,13 +83,11 @@ namespace Game.MonoComponent
 		public void Init(IObjectPool<PieceMonoComponent> pool)
 		{
 			_pool = pool;
-			Debug.Log($"Init: {_uniqueId} - {_pool}");
 		}
 
 		/// <inheritdoc />
 		public bool Despawn()
 		{
-			Debug.Log($"Piece: {_uniqueId} - {_pool}");
 			return _pool.Despawn(this);
 		}
 
@@ -120,7 +118,6 @@ namespace Game.MonoComponent
 		private void OnPieceRemoved(UniqueId id, IPieceData oldData, IPieceData newData, ObservableUpdateType updateType)
 		{
 			if (updateType != ObservableUpdateType.Removed) return;
-			Debug.Log($"Piece removed: {id} - {_uniqueId}");
 
 			Despawn();
 		}
