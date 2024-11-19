@@ -7,8 +7,14 @@ using System.Collections.Generic;
 
 namespace Game.Logic.Shared
 {
+	/// <summary>
+	/// Provides the necessary behaviour to manage the creation of entities for the entire game logic
+	/// </summary>
 	public interface IEntityFactoryDataProvider
 	{
+		/// <summary>
+		/// UniqueId of the last created entity
+		/// </summary>
 		UniqueId LastUniqueId { get; }
 	}
 
@@ -21,13 +27,13 @@ namespace Game.Logic.Shared
 	/// <inheritdoc cref="IEntityFactoryLogic"/>
 	public class EntityFactoryLogic : AbstractBaseLogic<PlayerData>, IEntityFactoryLogic
 	{
-		private IGameLogic _gameLogic;
+		private IGameLogicLocator _gameLogic;
 
 		/// <inheritdoc />
 		public UniqueId LastUniqueId => Data.UniqueIdCounter;
 
 		public EntityFactoryLogic(
-			IGameLogic gamelogic, 
+			IGameLogicLocator gamelogic, 
 			IConfigsProvider configsProvider, 
 			IDataProvider dataProvider, 
 			ITimeService timeService) :

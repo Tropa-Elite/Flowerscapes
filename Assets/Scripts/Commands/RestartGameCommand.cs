@@ -6,10 +6,10 @@ namespace Game.Commands
 	/// <summary>
 	/// This command is responsible to handle the logic when the game is restarted
 	/// </summary>
-	public struct RestartGameCommand : IGameCommand<IGameLogic>
+	public struct RestartGameCommand : IGameCommand<IGameLogicLocator>
 	{
 		/// <inheritdoc />
-		public void Execute(IGameLogic gameLogic)
+		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			var logic = gameLogic.GameplayBoardLogic;
 

@@ -8,37 +8,34 @@ using System.Threading.Tasks;
 
 namespace Game.Logic.Shared
 {
+	/// <summary>
+	/// This logic provides the necessary behaviour to peak the next Random Number Generator
+	/// </summary>
 	public interface IRngDataProvider
 	{
-		/// <summary>
-		/// The <see cref="IRngData"/> that this service is manipulating
-		/// </summary>
+		/// <inheritdoc cref="IRngService.Data"/>
 		public IRngData Data { get; }
 
-		/// <summary>
-		/// Returns the number of times the Rng has been counted;
-		/// </summary>
+		/// <inheritdoc cref="IRngService.Counter"/>
 		int Counter { get; }
 
-		/// <summary>
-		/// Requests the next <see cref="int"/> generated value without changing the state.
-		/// Calling this multiple times in sequence gives always the same result.
-		/// </summary>
+		/// <inheritdoc cref="IRngService.Peek"/>
 		int Peek { get; }
 
-		/// <summary>
-		/// Requests the next <see cref="float"/> generated value without changing the state.
-		/// Calling this multiple times in sequence gives always the same result.
-		/// </summary>
+		/// <inheritdoc cref="IRngService.Peekfloat"/>
 		floatP Peekfloat { get; }
 
+		/// <inheritdoc cref="IRngService.PeekRange(int, int, bool)"/>
 		int PeekRange(int min, int max, bool maxInclusive = false);
 
+		/// <inheritdoc cref="IRngService.PeekRange(float, float, bool)"/>
 		floatP PeekRange(floatP min, floatP max, bool maxInclusive = true);
 	}
 
+	/// <inheritdoc cref="IRngService"/>
 	public interface IRngLogic : IRngService, IRngDataProvider { }
 
+	/// <inheritdoc cref="RngService"/>
 	public class RngLogic : RngService, IRngLogic
 	{
 		public RngLogic(IDataProvider dataProvider) : base(dataProvider.GetData<RngData>())

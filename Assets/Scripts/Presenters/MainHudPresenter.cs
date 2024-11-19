@@ -6,6 +6,8 @@ using Game.Logic;
 using Game.Services;
 using TMPro;
 using UnityEngine;
+using Game.Messages;
+using UnityEngine.UI;
 
 namespace Game.Presenters
 {
@@ -15,16 +17,28 @@ namespace Game.Presenters
 	/// </summary>
 	public class MainHudPresenter : UiPresenter
 	{
+		[SerializeField] private TextMeshProUGUI _version;
 		[SerializeField] private TextMeshProUGUI _softCurrencyText;
 		[SerializeField] private TextMeshProUGUI _hardCurrencyText;
+		[SerializeField] private Button _gameOverButton;
 
-		private IGameDataProvider _dataProvider;
-		private IGameServices _services;
+		private IGameDataProviderLocator _dataProvider;
+		private IGameServicesLocator _services;
 
 		private void Awake()
 		{
-			_dataProvider = MainInstaller.Resolve<IGameDataProvider>();
-			_services = MainInstaller.Resolve<IGameServices>();
+			_dataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
+			_services = MainInstaller.Resolve<IGameServicesLocator>();
+
+			_gameOverButton.onClick.AddListener(GameOverClicked);
+		}
+
+		private void Start()
+		{
+			_version.text =
+				$"internal = v{VersionServices.VersionInternal}\n" +
+				$"external = v{VersionServices.VersionExternal}\n" +
+				$"build number = {VersionServices.BuildNumber}";
 		}
 
 		protected override void OnOpened()
@@ -41,6 +55,11 @@ namespace Game.Presenters
 		private void OnHardCurrencyUpdated(GameId currency, int amountBefore, int amountAfter, ObservableUpdateType updateType)
 		{
 			_hardCurrencyText.text = $"HC: {amountAfter.ToString()}";
+		}
+
+		private void GameOverClicked()
+		{
+			_services.MessageBrokerService.Publish(new OnGameOverMessage());
 		}
 	}
 }

@@ -1,18 +1,17 @@
 using System;
-using System.Threading.Tasks;
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
 using Game.Ids;
 using Game.Services;
 using UnityEngine;
-using Game.Messages;
-using Game.MonoComponent;
-using Game.Utils;
-using Game.Logic;
 using Game.Presenters;
-using NUnit.Framework;
-using System.Collections.Generic;
+using Game.Messages;
 using Game.Commands;
+using Game.Logic;
+using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
+using Game.Utils;
+using Game.Controllers;
 
 namespace Game.StateMachines
 {
@@ -24,18 +23,21 @@ namespace Game.StateMachines
 		public static readonly IStatechartEvent GAME_OVER_EVENT = new StatechartEvent("Game Over Event");
 
 		private static readonly IStatechartEvent RESTART_CLICKED_EVENT = new StatechartEvent("Restart Button Clicked Event");
+		private static readonly IStatechartEvent MENU_CLICKED_EVENT = new StatechartEvent("Menu Clicked Event");
 
 		private readonly IGameUiService _uiService;
-		private readonly IGameServices _services;
-		private readonly IGameDataProvider _gameDataProvider;
+		private readonly IGameServicesLocator _services;
+		private readonly IGameDataProviderLocator _gameDataProvider;
 		private readonly Action<IStatechartEvent> _statechartTrigger;
-		
+		private readonly PiecesController _piecesController;
+
 		public GameplayState(IInstaller installer, Action<IStatechartEvent> statechartTrigger)
 		{
-			_gameDataProvider = installer.Resolve<IGameDataProvider>();
-			_services = installer.Resolve<IGameServices>();
+			_gameDataProvider = installer.Resolve<IGameDataProviderLocator>();
+			_services = installer.Resolve<IGameServicesLocator>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
 			_statechartTrigger = statechartTrigger;
+			_piecesController = new PiecesController(_services, _gameDataProvider);
 		}
 
 		/// <summary>
@@ -52,19 +54,23 @@ namespace Game.StateMachines
 
 			initial.Transition().Target(gameplayLoading);
 			initial.OnExit(SubscribeEvents);
-			
-			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameStateCheck);
+
+			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameplay);
 
 			gameStateCheck.OnEnter(GameInit);
 			gameStateCheck.Transition().Condition(IsGameOver).Target(gameOver);
 			gameStateCheck.Transition().Target(gameplay);
 
+			gameplay.OnEnter(OpenGameplayUi);
 			gameplay.Event(GAME_OVER_EVENT).Target(gameOver);
+			gameplay.OnExit(CloseGameplayUi);
 
 			gameOver.OnEnter(OpenGameOverUi);
 			gameOver.Event(RESTART_CLICKED_EVENT).OnTransition(RestartGame).Target(gameStateCheck);
+			gameOver.Event(MENU_CLICKED_EVENT).Target(final);
 			gameOver.OnExit(CloseGameOverUi);
 
+			final.OnEnter(UnloadAssets);
 			final.OnEnter(UnsubscribeEvents);
 		}
 
@@ -72,6 +78,7 @@ namespace Game.StateMachines
 		{
 			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
 			_services.MessageBrokerService.Subscribe<OnGameRestartClickedMessage>(OnGameRestartClickedMessage);
+			_services.MessageBrokerService.Subscribe<OnReturnMenuClickedMessage>(OnMenutClickedMessage);
 		}
 
 		private void UnsubscribeEvents()
@@ -82,6 +89,11 @@ namespace Game.StateMachines
 		private void OnGameOverMessage(OnGameOverMessage message)
 		{
 			_statechartTrigger(GAME_OVER_EVENT);
+		}
+
+		private void OnMenutClickedMessage(OnReturnMenuClickedMessage message)
+		{
+			_statechartTrigger(MENU_CLICKED_EVENT);
 		}
 
 		private void OnGameRestartClickedMessage(OnGameRestartClickedMessage message)
@@ -104,9 +116,19 @@ namespace Game.StateMachines
 			return _gameDataProvider.GameplayBoardDataProvider.IsGameOver();
 		}
 
+		private void OpenGameplayUi()
+		{
+			_uiService.OpenUiAsync<MainHudPresenter>().Forget();
+		}
+
+		private void CloseGameplayUi()
+		{
+			_uiService.CloseUi<MainHudPresenter>();
+		}
+
 		private void OpenGameOverUi()
 		{
-			_ = _uiService.OpenUiAsync<GameOverScreenPresenter>();
+			_uiService.OpenUiAsync<GameOverScreenPresenter>().Forget();
 		}
 
 		private void CloseGameOverUi()
@@ -114,33 +136,20 @@ namespace Game.StateMachines
 			_uiService.CloseUi<GameOverScreenPresenter>();
 		}
 
-		// TODO: Move this to a separate code file. Needs a pattern or structure for it
-		private async Task LoadGameplayAssets()
+		private async UniTask LoadGameplayAssets()
 		{
-			var tasks = new List<Task> { _uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f) };
-			var poolTransform = new GameObject("PiecePool").GetComponent<Transform>();
+			await UniTask.WhenAll(
+				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
+				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
+			await _piecesController.Init();
+		}
 
-			poolTransform.SetParent(GameObject.FindFirstObjectByType<Canvas>().transform);
-			poolTransform.localPosition = Vector3.zero;
-			poolTransform.localScale = Vector3.one;
-
-			var piece = await _services.AssetResolverService.InstantiateAsync(
-				Constants.Prefabs.PIECE, 
-				Vector3.right * 10000f, // Move out of the screen
-				Quaternion.identity,
-				poolTransform);
-
-			var piecePool = new GameObjectPool<PieceMonoComponent>(
-				(uint) (Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS) / 2,
-				piece.GetComponent<PieceMonoComponent>());
-
-			piece.SetActive(false);
-			_services.PoolService.AddPool(piecePool);
-
-			await Task.WhenAll(tasks);
-
-			GC.Collect();
-			_ = Resources.UnloadUnusedAssets();
+		private void UnloadAssets()
+		{
+			_piecesController.CleanUp();
+			_uiService.UnloadGameUiSet(UiSetId.GameplayUi);
+			_services.AssetResolverService.UnloadSceneAsync(SceneId.Game).Forget();
+			Resources.UnloadUnusedAssets();
 		}
 	}
 }

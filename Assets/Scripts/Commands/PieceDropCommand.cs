@@ -3,20 +3,17 @@ using Game.Ids;
 using Game.Logic;
 using Game.Logic.Shared;
 using Game.Messages;
-using Game.MonoComponent;
 using Game.Utils;
-using GameLovers;
 using GameLovers.Services;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Game.Commands
 {
 	/// <summary>
 	/// This command is responsible to handle the logic when a piece is dropped in the board
 	/// </summary>
-	public struct PieceDropCommand : IGameCommand<IGameLogic>
+	public struct PieceDropCommand : IGameCommand<IGameLogicLocator>
 	{
 		public UniqueId PieceId;
 		public int Row;
@@ -30,7 +27,7 @@ namespace Game.Commands
 		}
 
 		/// <inheritdoc />
-		public void Execute(IGameLogic gameLogic)
+		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			var boardLogic = gameLogic.GameplayBoardLogic;
 
@@ -47,11 +44,11 @@ namespace Game.Commands
 				boardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
 			}
 
-			gameLogic.MessageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = PieceId, Row = Row, Column = Column });
+			messageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = PieceId, Row = Row, Column = Column });
 
 			if (boardLogic.IsGameOver())
 			{
-				gameLogic.MessageBrokerService.Publish(new OnGameOverMessage());
+				messageBrokerService.Publish(new OnGameOverMessage());
 			}
 			/*
 			// TODO: Check if there is any potential match first - Case B
@@ -74,7 +71,7 @@ namespace Game.Commands
 			CheckMatches(gameLogic, pieceList);*/
 		}
 
-		private void CheckMatches(IGameLogic gameLogic, List<TilePiece> list)
+		private void CheckMatches(IGameLogicLocator gameLogic, List<TilePiece> list)
 		{
 			foreach (var tilePiece in list)
 			{
@@ -162,7 +159,7 @@ namespace Game.Commands
 			}
 		}
 
-		private List<TilePiece> SorroundingPiecesList(IGameLogic gameLogic)
+		private List<TilePiece> SorroundingPiecesList(IGameLogicLocator gameLogic)
 		{
 			var list = new List<TilePiece>();
 

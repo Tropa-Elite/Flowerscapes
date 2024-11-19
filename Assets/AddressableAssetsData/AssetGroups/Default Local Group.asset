@@ -15,8 +15,8 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: f63d7ae4525a54540a820ce32e19185a
   m_SerializeEntries:
-  - m_GUID: b0823070acff6413286499dac4344f50
-    m_Address: Prefabs
+  - m_GUID: 9ce3481784255804aae585986e796a42
+    m_Address: Addressables
     m_ReadOnly: 0
     m_SerializedLabels:
     - GenerateIds
