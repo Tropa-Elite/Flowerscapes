@@ -55,7 +55,7 @@ namespace Game.StateMachines
 			initial.Transition().Target(gameplayLoading);
 			initial.OnExit(SubscribeEvents);
 
-			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameplay);
+			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameStateCheck);
 
 			gameStateCheck.OnEnter(GameInit);
 			gameStateCheck.Transition().Condition(IsGameOver).Target(gameOver);
@@ -103,6 +103,7 @@ namespace Game.StateMachines
 
 		private void GameInit()
 		{
+			_piecesController.Init();
 			_services.MessageBrokerService.Publish(new OnGameInitMessage());
 		}
 
@@ -141,7 +142,7 @@ namespace Game.StateMachines
 			await UniTask.WhenAll(
 				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
 				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
-			await _piecesController.Init();
+			await _piecesController.Setup();
 		}
 
 		private void UnloadAssets()

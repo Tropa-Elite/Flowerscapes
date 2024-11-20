@@ -29,7 +29,7 @@ namespace Game.Controllers
 			_dataProvider = dataProvider;
 		}
 
-		public async UniTask Init()
+		public async UniTask Setup()
 		{
 			var piece = await _services.AssetResolverService.InstantiateAsync(
 				AddressableId.Addressables_Prefabs_Piece.GetConfig().Address,
@@ -40,9 +40,13 @@ namespace Game.Controllers
 			_deckViewController = GameObject.FindFirstObjectByType<PieceDeckViewController>();
 
 			CreatePiecesPool(piece.GetComponent<PieceViewController>());
+			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDropped);
+		}
+
+		public void Init()
+		{
 			SpawnDeckPieces();
 			InitializeBoardPieces();
-			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDropped);
 		}
 
 		public void CleanUp()
@@ -53,6 +57,15 @@ namespace Game.Controllers
 
 			_pool = null;
 			_deckViewController = null;
+		}
+
+		private void OnPieceDropped(OnPieceDroppedMessage message)
+		{
+			// Check if the input board was just refilled
+			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
+			{
+				SpawnDeckPieces();
+			}
 		}
 
 		private void CreatePiecesPool(PieceViewController piece)
@@ -73,15 +86,6 @@ namespace Game.Controllers
 			poolTransform.localScale = Vector3.one;
 
 			return poolTransform;
-		}
-
-		private void OnPieceDropped(OnPieceDroppedMessage message)
-		{
-			// Check if the input board was just refilled
-			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
-			{
-				SpawnDeckPieces();
-			}
 		}
 
 		private void SpawnDeckPieces()

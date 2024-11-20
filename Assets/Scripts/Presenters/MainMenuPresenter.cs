@@ -1,7 +1,9 @@
 ﻿using Game.Messages;
 using Game.Services;
+using GameLovers;
 using GameLovers.Services;
 using GameLovers.UiService;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +16,7 @@ namespace Game.Presenters
 	/// </summary>
 	public class MainMenuPresenter : UiPresenter
 	{
+		[SerializeField] private TextMeshProUGUI _version;
 		[SerializeField] private Button _playButton;
 
 		private IGameServicesLocator _services;
@@ -23,6 +26,14 @@ namespace Game.Presenters
 			_services = MainInstaller.Resolve<IGameServicesLocator>();
 
 			_playButton.onClick.AddListener(OnPlayButtonClicked);
+		}
+
+		private void Start()
+		{
+			_version.text =
+				$"internal = v{VersionServices.VersionInternal}\n" +
+				$"external = v{VersionServices.VersionExternal}\n" +
+				$"build number = {VersionServices.BuildNumber}";
 		}
 
 		private void OnPlayButtonClicked()

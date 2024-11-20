@@ -134,7 +134,7 @@ namespace Game.ViewControllers
 
 		private void OnPieceRemoved(UniqueId id, IPieceData oldData, IPieceData newData, ObservableUpdateType updateType)
 		{
-			if (updateType != ObservableUpdateType.Removed) return;
+			if (id != _uniqueId || updateType != ObservableUpdateType.Removed) return;
 
 			Despawn();
 		}

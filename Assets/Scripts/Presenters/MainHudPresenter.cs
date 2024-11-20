@@ -17,7 +17,6 @@ namespace Game.Presenters
 	/// </summary>
 	public class MainHudPresenter : UiPresenter
 	{
-		[SerializeField] private TextMeshProUGUI _version;
 		[SerializeField] private TextMeshProUGUI _softCurrencyText;
 		[SerializeField] private TextMeshProUGUI _hardCurrencyText;
 		[SerializeField] private Button _gameOverButton;
@@ -31,14 +30,6 @@ namespace Game.Presenters
 			_services = MainInstaller.Resolve<IGameServicesLocator>();
 
 			_gameOverButton.onClick.AddListener(GameOverClicked);
-		}
-
-		private void Start()
-		{
-			_version.text =
-				$"internal = v{VersionServices.VersionInternal}\n" +
-				$"external = v{VersionServices.VersionExternal}\n" +
-				$"build number = {VersionServices.BuildNumber}";
 		}
 
 		protected override void OnOpened()
