@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Game.Views
 {
 	[RequireComponent(typeof(Image))]
-	public class ChunkView : MonoBehaviour
+	public class PieceSliceView : MonoBehaviour
 	{
 		private readonly Dictionary<SliceColor, Color> _colorMap = new Dictionary<SliceColor, Color>
 		{

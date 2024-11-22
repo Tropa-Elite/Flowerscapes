@@ -21,8 +21,8 @@ namespace Game.StateMachines
 	public class GameplayState
 	{
 		public static readonly IStatechartEvent GAME_OVER_EVENT = new StatechartEvent("Game Over Event");
-
-		private static readonly IStatechartEvent RESTART_CLICKED_EVENT = new StatechartEvent("Restart Button Clicked Event");
+		public static readonly IStatechartEvent GAME_RESTART_EVENT = new StatechartEvent("Game Restart Event");
+		
 		private static readonly IStatechartEvent MENU_CLICKED_EVENT = new StatechartEvent("Menu Clicked Event");
 
 		private readonly IGameUiService _uiService;
@@ -66,7 +66,7 @@ namespace Game.StateMachines
 			gameplay.OnExit(CloseGameplayUi);
 
 			gameOver.OnEnter(OpenGameOverUi);
-			gameOver.Event(RESTART_CLICKED_EVENT).OnTransition(RestartGame).Target(gameStateCheck);
+			gameOver.Event(GAME_RESTART_EVENT).Target(gameStateCheck);
 			gameOver.Event(MENU_CLICKED_EVENT).Target(final);
 			gameOver.OnExit(CloseGameOverUi);
 
@@ -77,7 +77,7 @@ namespace Game.StateMachines
 		private void SubscribeEvents()
 		{
 			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
-			_services.MessageBrokerService.Subscribe<OnGameRestartClickedMessage>(OnGameRestartClickedMessage);
+			_services.MessageBrokerService.Subscribe<OnGameRestartMessage>(OnGameRestartMessage);
 			_services.MessageBrokerService.Subscribe<OnReturnMenuClickedMessage>(OnMenutClickedMessage);
 		}
 
@@ -96,20 +96,15 @@ namespace Game.StateMachines
 			_statechartTrigger(MENU_CLICKED_EVENT);
 		}
 
-		private void OnGameRestartClickedMessage(OnGameRestartClickedMessage message)
+		private void OnGameRestartMessage(OnGameRestartMessage message)
 		{
-			_statechartTrigger(RESTART_CLICKED_EVENT);
+			_statechartTrigger(GAME_RESTART_EVENT);
 		}
 
 		private void GameInit()
 		{
 			_piecesController.Init();
 			_services.MessageBrokerService.Publish(new OnGameInitMessage());
-		}
-
-		private void RestartGame()
-		{
-			_services.CommandService.ExecuteCommand(new RestartGameCommand());
 		}
 
 		private bool IsGameOver()

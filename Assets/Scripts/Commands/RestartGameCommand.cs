@@ -1,4 +1,5 @@
 ﻿using Game.Logic;
+using Game.Messages;
 using GameLovers.Services;
 
 namespace Game.Commands
@@ -16,6 +17,7 @@ namespace Game.Commands
 			logic.Pieces.Clear();
 			logic.RefillBoard(gameLogic.EntityFactoryLogic.CreatePiece, gameLogic.RngLogic);
 			logic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
+			messageBrokerService.Publish(new OnGameRestartMessage());
 		}
 	}
 }

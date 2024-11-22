@@ -1,4 +1,5 @@
-﻿using Game.Messages;
+﻿using Game.Commands;
+using Game.Messages;
 using Game.Services;
 using GameLovers.Services;
 using GameLovers.UiService;
@@ -34,7 +35,7 @@ namespace Game.Presenters
 
 		private void Restart()
 		{
-			_services.MessageBrokerService.PublishSafe(new OnGameRestartClickedMessage());
+			_services.CommandService.ExecuteCommand(new RestartGameCommand());
 		}
 	}
 }

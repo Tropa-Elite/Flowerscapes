@@ -10,6 +10,7 @@ using GameLovers.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace Game.ViewControllers
 {
@@ -19,7 +20,7 @@ namespace Game.ViewControllers
 	{
 		[SerializeField] private RectTransform _rectTransform;
 		[SerializeField] private DraggableView _draggable;
-		[SerializeField] private ChunkView[] _slices;
+		[SerializeField] private PieceSliceView[] _slices;
 		[HideInInspector]
 		[SerializeField] private GraphicRaycaster _canvasRaycaster;
 
@@ -35,7 +36,7 @@ namespace Game.ViewControllers
 		{
 			_rectTransform = _rectTransform != null ? _rectTransform : GetComponent<RectTransform>();
 			_draggable = _draggable != null ? _draggable : GetComponent<DraggableView>();
-			_slices ??= GetComponentsInChildren<ChunkView>();
+			_slices ??= GetComponentsInChildren<PieceSliceView>();
 		}
 
 		private void Awake()
@@ -95,25 +96,10 @@ namespace Game.ViewControllers
 		/// <inheritdoc />
 		public void OnSpawn(UniqueId id)
 		{
-			var slices = _dataProvider.GameplayBoardDataProvider.Pieces[id].Slices;
-
 			_uniqueId = id;
 			_draggable.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(id);
 
-			_dataProvider.GameplayBoardDataProvider.Pieces.Observe(id, OnPieceRemoved);
-
-			for (var i = 0; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
-			{
-				if(i >= slices.Count)
-				{
-					_slices[i].gameObject.SetActive(false);
-					continue;
-				}
-
-				_slices[i].SliceColor = slices[i];
-
-				_slices[i].gameObject.SetActive(true);
-			}
+			_dataProvider.GameplayBoardDataProvider.Pieces.InvokeObserve(id, OnPieceUpdated);
 		}
 
 		/// <inheritdoc />
@@ -132,11 +118,37 @@ namespace Game.ViewControllers
 			RectTransform.anchoredPosition = Vector3.zero;
 		}
 
-		private void OnPieceRemoved(UniqueId id, IPieceData oldData, IPieceData newData, ObservableUpdateType updateType)
+		private void OnPieceUpdated(UniqueId id, IPieceData oldData, IPieceData newData, ObservableUpdateType updateType)
 		{
-			if (id != _uniqueId || updateType != ObservableUpdateType.Removed) return;
+			if (id != _uniqueId) return;
 
-			Despawn();
+			switch (updateType)
+			{
+				case ObservableUpdateType.Updated:
+					UpdateSlices();
+					break;
+				case ObservableUpdateType.Removed:
+					Despawn();
+					break;
+			}
+		}
+
+		private void UpdateSlices()
+		{
+			var slices = _dataProvider.GameplayBoardDataProvider.Pieces[_uniqueId].Slices;
+
+			for (var i = 0; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
+			{
+				if (i >= slices.Count)
+				{
+					_slices[i].gameObject.SetActive(false);
+					continue;
+				}
+
+				_slices[i].SliceColor = slices[i];
+
+				_slices[i].gameObject.SetActive(true);
+			}
 		}
 	}
 }

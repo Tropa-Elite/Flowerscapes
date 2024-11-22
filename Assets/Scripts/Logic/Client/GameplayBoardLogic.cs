@@ -21,6 +21,8 @@ namespace Game.Logic.Client
 		bool TryGetPieceFromTile(int row, int column, out IPieceData pieceCopy);
 
 		bool IsGameOver();
+
+		List<KeyValuePair<int, int>> GetPiecesNodeList(int row, int column);
 	}
 
 	/// <inheritdoc />
@@ -32,6 +34,8 @@ namespace Game.Logic.Client
 		bool TryGetPieceDataFromTile(int row, int column, out PieceData piece);
 
 		void SetPieceOnTile(UniqueId pieceId, int row, int column);
+
+		void ActivateTile(int row, int column);
 
 		void CleanUpTile(int row, int column);
 
@@ -123,6 +127,37 @@ namespace Game.Logic.Client
 		}
 
 		/// <inheritdoc />
+		public List<KeyValuePair<int, int>> GetPiecesNodeList(int row, int column)
+		{
+			var list = new List<KeyValuePair<int, int>>();
+
+			if (TryGetPieceFromTile(row, row, out _))
+			{
+				list.Add(new KeyValuePair<int, int>(row, column));
+			}
+
+			for (var i = -1; i < 2; i++)
+			{
+				if (i == 0) continue;
+				if (TryGetPieceFromTile(row + i, column, out _))
+				{
+					list.Add(new KeyValuePair<int, int>(row + i, column));
+				}
+			}
+
+			for (var i = -1; i < 2; i++)
+			{
+				if (i == 0) continue;
+				if (TryGetPieceFromTile(row, column + i, out _))
+				{
+					list.Add(new KeyValuePair<int, int>(row, column + i));
+				}
+			}
+
+			return list;
+		}
+
+		/// <inheritdoc />
 		public void SetPieceOnTile(UniqueId pieceId, int row, int column)
 		{
 			if (Data.Board[row, column] != null)
@@ -138,6 +173,39 @@ namespace Game.Logic.Client
 				Column = column,
 				Piece = pieceId
 			};
+		}
+
+		/// <inheritdoc />
+		public void ActivateTile(int row, int column)
+		{
+			var piece = _pieces[Data.Board[row, column].Piece];
+			var nodeList = GetPiecesNodeList(row, column);
+
+			if(ColorCount(piece) != 1)
+			{
+				return;
+			}
+
+			var color = piece.Slices[0];
+			var slicesCount = piece.Slices.Count;
+
+			for (int i = 0; i < nodeList.Count && slicesCount < Constants.Gameplay.MAX_PIECE_SLICES; i++)
+			{
+				if (nodeList[i].Key == row && nodeList[i].Value == column) continue;
+
+				var maxSlices = Constants.Gameplay.MAX_PIECE_SLICES - slicesCount;
+				var addSlices = CollectSlicesFromTile(nodeList[i].Key, nodeList[i].Value, color, maxSlices);
+
+				FillPiece(piece.Id, color, addSlices);
+
+				slicesCount += addSlices;
+			}
+
+			// Piece is full
+			if(slicesCount == Constants.Gameplay.MAX_PIECE_SLICES)
+			{
+				CleanUpTile(row, column);
+			}
 		}
 
 		/// <inheritdoc />
@@ -171,7 +239,7 @@ namespace Game.Logic.Client
 			{
 				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
 				{
-					if (TryGetPieceDataFromTile(i, j, out var piece))
+					if (TryGetPieceDataFromTile(i, j, out _))
 					{
 						CleanUpTile(i, j);
 					}
@@ -188,6 +256,57 @@ namespace Game.Logic.Client
 				SetPieceOnTile(createPieceFunc().Id,
 					pos / Constants.Gameplay.BOARD_COLUMNS,
 					pos % Constants.Gameplay.BOARD_COLUMNS);
+			}
+		}
+
+		private int ColorCount(IPieceData piece)
+		{
+			var count = 0;
+
+			for (int i = 0; i < piece.Slices.Count; i++)
+			{
+				if (i == 0 || piece.Slices[i] != piece.Slices[i - 1])
+				{
+					count++;
+				}
+			}
+
+			return count;
+		}
+
+		private int CollectSlicesFromTile(int row, int column, SliceColor color, int maxSlices)
+		{
+			var count = 0;
+
+			if(TryGetPieceDataFromTile(row, column, out var piece))
+			{
+				for (int i = piece.Slices.Count - 1; i > -1 && count < maxSlices; i--)
+				{
+					if (piece.Slices[i] != color) continue;
+
+					count++;
+
+					piece.Slices.RemoveAt(i);
+				}
+
+				// Piece is empty
+				if (piece.Slices.Count == 0)
+				{
+					CleanUpTile(row, column);
+				}
+			}
+
+			return count;
+		}
+
+		private void FillPiece(UniqueId id, SliceColor color, int amount)
+		{
+			var piece = _pieces.GetOriginValue(id);
+			var index = piece.Slices.IndexOf(color);
+
+			for (int i = 0; i < amount; i++)
+			{
+				piece.Slices.Insert(index, color);
 			}
 		}
 	}
