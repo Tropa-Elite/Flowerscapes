@@ -155,8 +155,12 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public string QuitReason { get; private set; }
 
-		public AppLogic(IConfigsProvider configsProvider, IDataProvider dataProvider, ITimeService timeService) :
-			base(configsProvider, dataProvider, timeService)
+		public AppLogic(
+			IGameDataProviderLocator gameDataProvider,
+			IConfigsProvider configsProvider,
+			IDataProvider dataProvider,
+			ITimeService timeService) :
+			base(gameDataProvider, configsProvider, dataProvider, timeService)
 		{
 		}
 

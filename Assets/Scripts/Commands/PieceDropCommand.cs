@@ -30,17 +30,17 @@ namespace Game.Commands
 		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			var boardLogic = gameLogic.GameplayBoardLogic;
-			var nodeList = gameLogic.GameplayBoardLogic.GetPiecesNodeList(Row, Column);
+			var tileList = gameLogic.GameplayBoardLogic.GetAdjacentTileList(Row, Column);
 
 			if (boardLogic.TryGetPieceFromTile(Row, Column, out _))
 			{
 				throw new LogicException($"There is already a piece on tile ({Row}, {Column})");
 			}
 
-			nodeList.Insert(0, new KeyValuePair<int, int>(Row, Column));
+			tileList.Insert(0, (Row, Column, gameLogic.PiecesLogic.Pieces[PieceId]));
 			boardLogic.SetPieceOnTile(PieceId, Row, Column);
 			boardLogic.PieceDeck.Remove(PieceId);
-			boardLogic.ActivateTile(Row, Column);
+			boardLogic.ActivateTile(Row, Column, gameLogic.PiecesLogic);
 
 			if(boardLogic.PieceDeck.Count == 0)
 			{
@@ -48,11 +48,11 @@ namespace Game.Commands
 			}
 
 			// Update the piece changes
-			for (var i = 0; i < nodeList.Count; i++)
+			for (var i = 0; i < tileList.Count; i++)
 			{
-				if(gameLogic.GameplayBoardDataProvider.TryGetPieceFromTile(nodeList[i].Key, nodeList[i].Value, out var piece))
+				if(gameLogic.PiecesLogic.Pieces.ContainsKey(tileList[i].Item3.Id))
 				{
-					gameLogic.GameplayBoardLogic.Pieces.InvokeUpdate(piece.Id);
+					gameLogic.PiecesLogic.Pieces.InvokeUpdate(tileList[i].Item3.Id);
 				}
 			}
 

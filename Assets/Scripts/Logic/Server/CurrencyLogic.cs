@@ -46,8 +46,12 @@ namespace Game.Logic.Shared
 		/// <inheritdoc />
 		public IObservableDictionaryReader<GameId, int> Currencies => _currencies;
 
-		public CurrencyLogic(IConfigsProvider configsProvider, IDataProvider dataProvider, ITimeService timeService) :
-			base(configsProvider, dataProvider, timeService)
+		public CurrencyLogic(
+			IGameDataProviderLocator gameDataProvider,
+			IConfigsProvider configsProvider,
+			IDataProvider dataProvider,
+			ITimeService timeService) :
+			base(gameDataProvider, configsProvider, dataProvider, timeService)
 		{
 		}
 

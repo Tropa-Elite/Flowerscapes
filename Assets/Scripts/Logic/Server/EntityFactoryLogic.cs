@@ -3,7 +3,9 @@ using Game.Ids;
 using Game.Utils;
 using GameLovers.ConfigsProvider;
 using GameLovers.Services;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.Logic.Shared
 {
@@ -28,44 +30,58 @@ namespace Game.Logic.Shared
 	public class EntityFactoryLogic : AbstractBaseLogic<PlayerData>, IEntityFactoryLogic
 	{
 		private IGameLogicLocator _gameLogic;
+		private List<SliceColor> _randomColors;
 
 		/// <inheritdoc />
 		public UniqueId LastUniqueId => Data.UniqueIdCounter;
 
 		public EntityFactoryLogic(
-			IGameLogicLocator gamelogic, 
-			IConfigsProvider configsProvider, 
-			IDataProvider dataProvider, 
+			IGameLogicLocator gamelogic,
+			IConfigsProvider configsProvider,
+			IDataProvider dataProvider,
 			ITimeService timeService) :
-			base(configsProvider, dataProvider, timeService)
+			base(gamelogic, configsProvider, dataProvider, timeService)
 		{
 			_gameLogic = gamelogic;
+			_randomColors = new List<SliceColor>();
+
+			for(var i = 0; i < (int) SliceColor.ColorCount; i++)
+			{
+				_randomColors.Add((SliceColor)i);
+			}
 		}
 
 		/// <inheritdoc />
 		public PieceData CreatePiece()
 		{
 			var slicesCount = _gameLogic.RngLogic.Range(1, Constants.Gameplay.MAX_PIECE_SLICES - 1);
-			var colorCount = _gameLogic.RngLogic.Range(1, slicesCount);
-			var lastColor = (SliceColor)_gameLogic.RngLogic.Range(0, (int)SliceColor.ColorCount);
+			var colorCount = _gameLogic.RngLogic.Range(1, Math.Min(slicesCount, 3), true);
+			var colors = _randomColors.OrderBy(_ => _gameLogic.RngLogic.Next).ToList();
+			var minSlicesPerColor = (int)Math.Ceiling(slicesCount / (double)colorCount);
+			var maxSlicesPerColor = slicesCount - (colorCount - 1);
+			var slicesColorCounter = _gameLogic.RngLogic.Range(minSlicesPerColor, maxSlicesPerColor, true) - 1;
 			var piece = new PieceData
 			{
 				Id = ++Data.UniqueIdCounter,
 				Slices = new List<SliceColor>(slicesCount)
 			};
 
-			for (var i = 0; i < slicesCount; i++)
-			{
-				piece.Slices.Add(lastColor);
+			_randomColors.OrderBy(_ => _gameLogic.RngLogic.Next);
 
-				if (slicesCount - i == colorCount)
+			for (int i = 0, colorIndex = 0; i < slicesCount; i++, slicesColorCounter--)
+			{
+				piece.Slices.Add(colors[colorIndex]);
+
+				if (slicesColorCounter == 0 && i + 1 < slicesCount)
 				{
-					colorCount--;
-					lastColor = (SliceColor)_gameLogic.RngLogic.Range(0, (int)SliceColor.ColorCount);
+					colorIndex += 1;
+					minSlicesPerColor = (int)Math.Ceiling((slicesCount - i - 1f) / (colorCount - colorIndex));
+					maxSlicesPerColor = slicesCount - i - 1 - (colorCount - colorIndex - 1);
+					slicesColorCounter = _gameLogic.RngLogic.Range(minSlicesPerColor, maxSlicesPerColor, true);
 				}
 			}
 
-			_gameLogic.GameplayBoardLogic.Pieces.Add(piece.Id, piece);
+			_gameLogic.PiecesLogic.Pieces.Add(piece.Id, piece);
 
 			return piece;
 		}

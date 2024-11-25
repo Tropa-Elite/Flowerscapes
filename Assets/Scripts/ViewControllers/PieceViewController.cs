@@ -10,7 +10,6 @@ using GameLovers.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 namespace Game.ViewControllers
 {
@@ -48,7 +47,7 @@ namespace Game.ViewControllers
 
 		private void OnDestroy()
 		{
-			_dataProvider.GameplayBoardDataProvider.Pieces?.StopObserving(_uniqueId);
+			_dataProvider.PieceDataProvider.Pieces?.StopObserving(_uniqueId);
 		}
 
 		/// <inheritdoc />
@@ -99,13 +98,13 @@ namespace Game.ViewControllers
 			_uniqueId = id;
 			_draggable.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(id);
 
-			_dataProvider.GameplayBoardDataProvider.Pieces.InvokeObserve(id, OnPieceUpdated);
+			_dataProvider.PieceDataProvider.Pieces.InvokeObserve(id, OnPieceUpdated);
 		}
 
 		/// <inheritdoc />
 		public void OnDespawn()
 		{
-			_dataProvider.GameplayBoardDataProvider.Pieces.StopObserving(_uniqueId);
+			_dataProvider.PieceDataProvider.Pieces.StopObserving(_uniqueId);
 
 			_uniqueId = UniqueId.Invalid;
 		}
@@ -135,7 +134,7 @@ namespace Game.ViewControllers
 
 		private void UpdateSlices()
 		{
-			var slices = _dataProvider.GameplayBoardDataProvider.Pieces[_uniqueId].Slices;
+			var slices = _dataProvider.PieceDataProvider.Pieces[_uniqueId].Slices;
 
 			for (var i = 0; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
 			{

@@ -33,6 +33,8 @@ namespace Game.Logic
 		ICurrencyDataProvider CurrencyDataProvider { get; }
 		/// <inheritdoc cref="IGameplayBoardDataProvider"/>
 		IGameplayBoardDataProvider GameplayBoardDataProvider { get; }
+		/// <inheritdoc cref="IPiecesDataProvider"/>
+		IPiecesDataProvider PieceDataProvider { get; }
 	}
 
 	/// <summary>
@@ -52,6 +54,8 @@ namespace Game.Logic
 		ICurrencyLogic CurrencyLogic { get; }
 		/// <inheritdoc cref="IGameplayBoardLogic"/>
 		IGameplayBoardLogic GameplayBoardLogic { get; }
+		/// <inheritdoc cref="IPiecesLogic"/>
+		IPiecesLogic PiecesLogic { get; }
 	}
 
 	/// <summary>
@@ -78,6 +82,8 @@ namespace Game.Logic
 		public ICurrencyDataProvider CurrencyDataProvider => CurrencyLogic;
 		/// <inheritdoc />
 		public IGameplayBoardDataProvider GameplayBoardDataProvider => GameplayBoardLogic;
+		/// <inheritdoc />
+		public IPiecesDataProvider PieceDataProvider => PiecesLogic;
 
 		/// <inheritdoc />
 		public IAppLogic AppLogic { get; }
@@ -89,6 +95,8 @@ namespace Game.Logic
 		public ICurrencyLogic CurrencyLogic { get; }
 		/// <inheritdoc />
 		public IGameplayBoardLogic GameplayBoardLogic { get; }
+		/// <inheritdoc cref="IPiecesLogic"/>
+		public IPiecesLogic PiecesLogic { get; }
 
 		public GameLogicLocator(IInstaller installer)
 		{
@@ -96,10 +104,11 @@ namespace Game.Logic
 			var dataProvider = installer.Resolve<IDataProvider>();
 			var timeService = installer.Resolve<ITimeService>();
 
-			AppLogic = new AppLogic(configsProvider, dataProvider, timeService);
+			AppLogic = new AppLogic(this, configsProvider, dataProvider, timeService);
 			EntityFactoryLogic = new EntityFactoryLogic(this, configsProvider, dataProvider, timeService);
-			CurrencyLogic = new CurrencyLogic(configsProvider, dataProvider, timeService);
-			GameplayBoardLogic = new GameplayBoardLogic(configsProvider, dataProvider, timeService);
+			CurrencyLogic = new CurrencyLogic(this, configsProvider, dataProvider, timeService);
+			GameplayBoardLogic = new GameplayBoardLogic(this, configsProvider, dataProvider, timeService);
+			PiecesLogic = new PiecesLogic(this, configsProvider, dataProvider, timeService);
 		}
 
 		/// <inheritdoc />
@@ -112,6 +121,7 @@ namespace Game.Logic
 			// ReSharper disable PossibleNullReferenceException
 			(CurrencyLogic as IGameLogicInitializer).Init();
 			(GameplayBoardLogic as IGameLogicInitializer).Init();
+			(PiecesLogic as IGameLogicInitializer).Init();
 		}
 	}
 }
