@@ -75,6 +75,8 @@ sysinfo.txt
 **/Build.meta
 **/Editor Default Resources/
 **/Editor Default Resources.meta
+**/WebGL Builds/
+**/WebGL Builds.meta
 build-output.properties
 
 # Crashlytics generated file

@@ -133,7 +133,9 @@ namespace Game.Logic.Client
 			set
 			{
 				Data.FpsTarget = value;
+#if !UNITY_WEBGL
 				UnityEngine.Application.targetFrameRate = value;
+#endif
 			}
 		}
 

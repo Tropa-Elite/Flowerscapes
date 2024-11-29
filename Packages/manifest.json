@@ -12,6 +12,8 @@
     "com.gamelovers.uiservice": "https://github.com/CoderGamester/com.gamelovers.uiservice.git",
     "com.unity.2d.animation": "10.1.4",
     "com.unity.2d.sprite": "1.0.0",
+    "com.unity.connect.share": "4.2.3",
+    "com.unity.device-simulator.devices": "1.0.0",
     "com.unity.ide.rider": "3.0.31",
     "com.unity.ide.visualstudio": "2.0.22",
     "com.unity.ide.windsurf": "https://github.com/Asuta/com.unity.ide.windsurf.git",

@@ -4,19 +4,11 @@ using Game.Logic;
 using Game.Messages;
 using Game.Presenters;
 using Game.Services;
-using Game.Utils;
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEditor.SearchService;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
-using static Game.Utils.Constants;
 
 namespace Game.StateMachines
 {

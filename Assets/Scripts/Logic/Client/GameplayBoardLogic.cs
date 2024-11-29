@@ -237,22 +237,18 @@ namespace Game.Logic.Client
 			{
 				var color = colorPair.Key;
 				var canReceiveSlices = tileColors.Count > 1 && piece.SlicesFreeSpace > colorPair.Value;
-				UnityEngine.Debug.Log($"Check: {color} {piece.IsEmpty} - {piece.IsFull} {pieceColors.Count} {tileColors.Count}");
+				
 				if (pieceColors.ContainsKey(color))
 				{
 					if (!piece.IsEmpty && !piece.IsFull && (pieceColors.Count == 1 || canReceiveSlices))
 					{
-						var before = pieceColors[color];
 						pieceColors[color] += pieceLogic.TransferSlices(pieceTile.Id, piece.Id, color);
-						// Get Slice
-						UnityEngine.Debug.Log($"Get: Transfered {before} - {pieceColors[color]} {color} slices from {pieceTile.Id} to {piece.Id}");
+						
 						return true;
 					}
 					else if (tileColors.Count == 1)
 					{
-						var before = pieceColors[color];
 						pieceColors[color] -= pieceLogic.TransferSlices(piece.Id, pieceTile.Id, color);
-						var after = pieceColors[color];
 
 						if (pieceColors[color] == 0)
 						{
@@ -262,8 +258,7 @@ namespace Game.Logic.Client
 						{
 							otherColorCache.Add(color, pieceTile);
 						}
-						// Give Slice
-						UnityEngine.Debug.Log($"Give: Transfered {before} - {after} {color} slices from {piece.Id} to {pieceTile.Id}");
+						
 						return true;
 					}
 				}
@@ -273,9 +268,7 @@ namespace Game.Logic.Client
 					pieceColors[color] = pieceLogic.TransferSlices(pieceTile.Id, piece.Id, color, cachePiece.SlicesFreeSpace);
 
 					otherColorCache.Remove(color);
-					// Get Slice to cache it to other Tile
-					// Get Slice
-					UnityEngine.Debug.Log($"Get Cache: Transfered {pieceColors[color]} {color} {cachePiece.SlicesFreeSpace} slices from {pieceTile.Id} to {piece.Id}");
+					
 					return true;
 				}
 			}
