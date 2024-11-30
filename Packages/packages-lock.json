@@ -5,14 +5,21 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "f846d1c7708032a45490b3d77b39064f3bf7d866"
+      "hash": "0095f839589ce5c9b12ef3c051abde7ee3d9885d"
+    },
+    "com.bgtools.playerprefseditor": {
+      "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
     },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "fbe0bf85155f42f8832205f7b3ac3df571ada33e"
+      "hash": "f9fd769be7c634610f2a61aa914a1a55f34740e1"
     },
     "com.gamelovers.assetsimporter": {
       "version": "https://github.com/CoderGamester/Unity-AssetsImporter.git",
@@ -20,56 +27,71 @@
       "source": "git",
       "dependencies": {
         "com.unity.addressables": "1.21.20",
-        "com.gamelovers.dataextensions": "0.5.1",
-        "com.gamelovers.configsprovider": "0.1.1"
+        "com.gamelovers.dataextensions": "0.6.0",
+        "com.gamelovers.configsprovider": "0.1.1",
+        "com.cysharp.unitask": "2.5.10"
       },
-      "hash": "1ee53e9890197fc27475e4422e7e3ca829f6a3e6"
+      "hash": "2c212648e4addf3a353d332ef40a128a09d41623"
     },
     "com.gamelovers.configsprovider": {
       "version": "https://github.com/CoderGamester/Unity-ConfigsProvider.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "45fc44b4d981372e247cfed6d443939a524a2d6c"
+      "hash": "f9c2b7acecbc222d184dc5aac9744eebf36b1164"
     },
     "com.gamelovers.dataextensions": {
       "version": "https://github.com/CoderGamester/com.gamelovers.dataextensions.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "7279e034b02bb9fb90fb0839d768d9d59cc616fa"
+      "hash": "adfa87b6b0b52577f3133eb76d6746be74e34362"
+    },
+    "com.gamelovers.googlesheetimporter": {
+      "version": "https://github.com/CoderGamester/Unity-GoogleSheet-Importer.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0",
+        "com.gamelovers.dataextensions": "0.4.0",
+        "com.gamelovers.configsprovider": "0.1.0"
+      },
+      "hash": "e27418f4a83b933a19db4218f7d2bac478e858e5"
     },
     "com.gamelovers.services": {
       "version": "https://github.com/CoderGamester/Services.git",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.gamelovers.dataextensions": "0.5.0"
+        "com.gamelovers.dataextensions": "0.6.2"
       },
-      "hash": "b0b75245984a2b64797fefea729ec5ff1b533d0a"
+      "hash": "ee0c43ea82daed8e12e242a399d02c0de439cae4"
     },
     "com.gamelovers.statechart": {
       "version": "https://github.com/CoderGamester/com.gamelovers.statechart.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "e33efe12dc8bb3c2d4f7d19dbbc18216b5540c03"
+      "dependencies": {
+        "com.cysharp.unitask": "2.5.10"
+      },
+      "hash": "270e13f370ce21a6894d6a9e5efe635fc11c0a78"
     },
     "com.gamelovers.uiservice": {
       "version": "https://github.com/CoderGamester/com.gamelovers.uiservice.git",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.unity.addressables": "1.17.17"
+        "com.unity.addressables": "1.22.0",
+        "com.cysharp.unitask": "2.5.10"
       },
-      "hash": "5cdab27fad6a58fdf3da47dadfe39a145eddc9d3"
+      "hash": "cc8cccd73382f1cf4935a5cc95399a0eb8a39de8"
     },
     "com.unity.2d.animation": {
-      "version": "10.1.3",
+      "version": "10.1.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.2d.common": "9.0.6",
+        "com.unity.2d.common": "9.0.7",
         "com.unity.2d.sprite": "1.0.0",
         "com.unity.collections": "1.2.4",
         "com.unity.modules.animation": "1.0.0",
@@ -78,7 +100,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.2d.common": {
-      "version": "9.0.6",
+      "version": "9.0.7",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -92,7 +114,7 @@
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {}
     },
@@ -122,15 +144,39 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.collections": {
-      "version": "2.4.3",
+      "version": "2.5.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.burst": "1.8.13",
-        "com.unity.test-framework": "1.4.3",
+        "com.unity.burst": "1.8.17",
+        "com.unity.test-framework": "1.4.5",
         "com.unity.nuget.mono-cecil": "1.11.4",
         "com.unity.test-framework.performance": "3.0.3"
       },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.connect.share": {
+      "version": "4.2.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.editorcoroutines": "1.0.0",
+        "com.unity.settings-manager": "1.0.2"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.device-simulator.devices": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.editorcoroutines": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
@@ -158,8 +204,17 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.ide.windsurf": {
+      "version": "https://github.com/Asuta/com.unity.ide.windsurf.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "811dead825698b69e3b51b70091893a86dd1327f"
+    },
     "com.unity.inputsystem": {
-      "version": "1.11.1",
+      "version": "1.11.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -191,7 +246,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.2.1",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -239,6 +294,13 @@
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.modules.unitywebrequest": "1.0.0"
       },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.settings-manager": {
+      "version": "2.0.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {

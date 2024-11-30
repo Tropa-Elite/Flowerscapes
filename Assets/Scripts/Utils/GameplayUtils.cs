@@ -5,7 +5,7 @@ namespace Game.Utils
 {
 	public static class GameplayUtils
 	{
-		public static int CovertTileToId(TileData tile)
+		public static int CovertToId(this TileData tile)
 		{
 			return CovertTileToId(tile.Row, tile.Column);
 		}

@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -7,6 +9,7 @@ namespace Game.Ids
 	/// Used to reference any entity by an unique Id value
 	/// </summary>
 	[Serializable]
+	[JsonConverter(typeof(UniqueIdConverter))]
 	public struct UniqueId : IEquatable<UniqueId>, IComparable<UniqueId>, IComparable<ulong>
 	{
 		public static readonly UniqueId Invalid = new UniqueId(0);
@@ -23,7 +26,7 @@ namespace Game.Ids
 		/// <inheritdoc />
 		public override int GetHashCode()
 		{
-			return (int)Id;
+			return Id.GetHashCode();
 		}
 
 		/// <inheritdoc />
@@ -105,7 +108,29 @@ namespace Game.Ids
 		/// <inheritdoc />
 		public int GetHashCode(UniqueId obj)
 		{
-			return (int) obj.Id;
+			return obj.Id.GetHashCode();
+		}
+	}
+
+	/// <summary>
+	/// Configuration of the Serialization and Desialization of <see cref="UniqueId"/>
+	/// </summary>
+	public class UniqueIdConverter : JsonConverter<UniqueId>
+	{
+		/// <inheritdoc />
+		public override void WriteJson(JsonWriter writer, UniqueId value, JsonSerializer serializer)
+		{
+			serializer.Serialize(writer, value.Id);
+		}
+
+		/// <inheritdoc />
+		public override UniqueId ReadJson(JsonReader reader, Type objectType, UniqueId existingValue, bool hasExistingValue, JsonSerializer serializer)
+		{
+			if (reader.TokenType == JsonToken.Integer)
+			{
+				return new UniqueId(JToken.Load(reader).ToObject<ulong>());
+			}
+			throw new JsonSerializationException($"Unexpected token type. Unable to convert {existingValue} to UniqueId");
 		}
 	}
 }
