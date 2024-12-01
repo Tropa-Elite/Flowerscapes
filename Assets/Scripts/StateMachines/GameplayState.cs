@@ -137,7 +137,7 @@ namespace Game.StateMachines
 			await UniTask.WhenAll(
 				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
 				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
-			await _piecesController.Setup();
+			await _piecesController.SetupAsync();
 		}
 
 		private void UnloadAssets()

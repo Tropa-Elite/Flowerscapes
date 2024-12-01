@@ -65,8 +65,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a48a6bd10f7ae94bb249ae976658817, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DragSpeed: 1
+  Offset: {x: 0, y: 1}
   _rectTransform: {fileID: 4645758624398740786}
-  _canvasTransform: {fileID: 0}
+  _defaultPivot: {x: 0.5, y: 0.5}
 --- !u!114 &9104468920057316318
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -25,7 +25,7 @@ namespace Game.Views
 
 		public SliceColor SliceColor 
 		{ 
-			get { return _sliceColor; }
+			get => _sliceColor;
 			set 
 			{ 
 				_sliceColor = value; 

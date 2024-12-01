@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+// ReSharper disable InconsistentNaming
 
 namespace Game.Utils
 {
@@ -22,7 +23,7 @@ namespace Game.Utils
 		/// </summary>
 		public static class Prefabs
 		{
-			public static string PIECE = "Prefabs/Piece.prefab";
+			public const string PIECE = "Prefabs/Piece.prefab";
 		}
 
 		/// <summary>
@@ -30,10 +31,15 @@ namespace Game.Utils
 		/// </summary>
 		public static class Gameplay
 		{
-			public static int BOARD_ROWS = 6;
-			public static int BOARD_COLUMNS = 4;
-			public static int MAX_PIECE_SLICES = 6;
-			public static int MAX_DECK_PIECES = 3;
+			public const int BOARD_ROWS = 6;
+			public const int BOARD_COLUMNS = 4;
+			public const int MAX_PIECE_SLICES = 6;
+			public const int MAX_DECK_PIECES = 3;
+			public const float PIECE_DESKTOP_SPEED = 1f;
+			public const float PIECE_MOBILE_SPEED = 3f;
+			public static readonly Vector2 PIECE_DESKTOP_OFFSET = new Vector2(0f, 0.2f);
+			public static readonly Vector2 PIECE_MOBILE_OFFSET = new Vector2(0f, 1f); 
+			public static readonly Color TILE_OVERING_COLOR = Color.clear;
 		}
 	}
 }

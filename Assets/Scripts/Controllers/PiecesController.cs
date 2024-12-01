@@ -6,22 +6,27 @@ using Game.Services;
 using Game.Utils;
 using Game.ViewControllers;
 using GameLovers.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Game.Commands;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Game.Controllers
 {
-	public class PiecesController
+	public interface IPiecesController
+	{
+		void Despawn(PieceViewController piece);
+		void OnPieceDrop(UniqueId piece, TileViewController tile);
+		void OnPieceDrag(TileViewController tileOvering);
+	}
+	
+	public class PiecesController : IPiecesController
 	{
 		private readonly IGameServicesLocator _services;
 		private readonly IGameDataProviderLocator _dataProvider;
 
 		private GameObjectPool<PieceViewController> _pool;
 		private PieceDeckViewController _deckViewController;
+		private TileViewController _overingTile;
 
 		public PiecesController(IGameServicesLocator services, IGameDataProviderLocator dataProvider)
 		{
@@ -29,7 +34,7 @@ namespace Game.Controllers
 			_dataProvider = dataProvider;
 		}
 
-		public async UniTask Setup()
+		public async UniTask SetupAsync()
 		{
 			var piece = await _services.AssetResolverService.InstantiateAsync(
 				AddressableId.Addressables_Prefabs_Piece.GetConfig().Address,
@@ -37,10 +42,9 @@ namespace Game.Controllers
 				Quaternion.identity,
 				CreatePoolTransform());
 
-			_deckViewController = GameObject.FindFirstObjectByType<PieceDeckViewController>();
+			_deckViewController = Object.FindFirstObjectByType<PieceDeckViewController>();
 
 			CreatePiecesPool(piece.GetComponent<PieceViewController>());
-			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDropped);
 		}
 
 		public void Init()
@@ -52,36 +56,77 @@ namespace Game.Controllers
 		public void CleanUp()
 		{
 			_pool.Dispose();
-			GameObject.Destroy(_pool.SampleEntity.transform.parent.gameObject);
-			_services.MessageBrokerService.Unsubscribe<OnPieceDroppedMessage>(this);
+			Object.Destroy(_pool.SampleEntity.transform.parent.gameObject);
 
 			_pool = null;
 			_deckViewController = null;
 		}
 
-		private void OnPieceDropped(OnPieceDroppedMessage message)
+		public void Despawn(PieceViewController piece)
 		{
-			// Check if the input board was just refilled
+			_pool.Despawn(piece);
+		}
+
+		public void OnPieceDrop(UniqueId pieceId, TileViewController tile)
+		{
+			_overingTile?.SetOveringState(false);
+
+			// This means that it dropped over a tile
+			if (tile == null)
+			{
+				return;
+			}
+			
+			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tile.Row, tile.Column));
+			
 			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
 			{
 				SpawnDeckPieces();
 			}
 		}
 
+		public void OnPieceDrag(TileViewController tileOvering)
+		{
+			var dataProvider = _dataProvider.GameplayBoardDataProvider;
+			
+			// This means that there is already a piece where the player wants to drop it 
+			if (tileOvering != null && dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
+			{
+				tileOvering = null;
+			}
+			
+			if (tileOvering != _overingTile)
+			{
+				_overingTile?.SetOveringState(false);
+				tileOvering?.SetOveringState(true);
+			}
+
+			_overingTile = tileOvering;
+		}
+
 		private void CreatePiecesPool(PieceViewController piece)
 		{
 			var poolSize = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS / 2;
 
-			_pool = new GameObjectPool<PieceViewController>((uint)poolSize, piece);
+			_pool = new GameObjectPool<PieceViewController>((uint)poolSize, piece, PieceInstantiator);
 
 			piece.gameObject.SetActive(false);
+		}
+
+		private PieceViewController PieceInstantiator(PieceViewController piece)
+		{
+			var instance = GameObjectPool<PieceViewController>.Instantiator(piece);
+			
+			instance.Init(this);
+
+			return instance;
 		}
 
 		private Transform CreatePoolTransform()
 		{
 			var poolTransform = new GameObject("PiecePool").GetComponent<Transform>();
 
-			poolTransform.SetParent(GameObject.FindFirstObjectByType<Canvas>().transform);
+			poolTransform.SetParent(Object.FindFirstObjectByType<Canvas>().transform);
 			poolTransform.localPosition = Vector3.zero;
 			poolTransform.localScale = Vector3.one;
 
@@ -110,13 +155,13 @@ namespace Game.Controllers
 
 		private void InitializeBoardPieces() 
 		{
-			var tiles = GameObject.FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
+			var tiles = Object.FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
 
 			foreach (var tile in tiles)
 			{
 				if (_dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out var pieceData))
 				{
-					_pool.Spawn(pieceData.Id).MoveIntoTile(tile);
+					_pool.Spawn(pieceData.Id).DraggableView.MoveIntoTransform(tile.transform);
 				}
 			}
 		}
