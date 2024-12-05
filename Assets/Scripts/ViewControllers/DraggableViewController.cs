@@ -1,14 +1,17 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using Game.Utils;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 
 namespace Game.ViewControllers
 {
 	public class DraggableViewController : ViewControllerBase, IPointerDownHandler, IDragHandler
 	{
 		public float DragSpeed = 1f;
+		public bool TweenPivot = true;
 		public Vector2 Offset = Vector2.up;
 		
+		private Tweener _resetTweener;
 		private Vector2 _initialPivot;
 		private Vector2 _initialPosition;
 		private Vector2 _previousPosition;
@@ -21,16 +24,22 @@ namespace Game.ViewControllers
 			_initialPivot = RectTransform.pivot;
 		}
 
+		// Order of execution is important in this method because parenting changes the local reference position of the transform
 		public void OnPointerDown(PointerEventData eventData)
 		{
+			if (_resetTweener != null && _resetTweener.IsPlaying()) return;
+			
 			_initialParent = RectTransform.parent;
-
+			_initialPosition = RectTransform.anchoredPosition;
+			
 			RectTransform.SetParent(_canvasTransform);
 			RectTransform.SetAsLastSibling();
+			RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvasTransform,
+				eventData.position, null, out var position);
 			
 			RectTransform.pivot = _initialPivot - Offset;
-			_initialPosition = RectTransform.anchoredPosition;
-			_previousPosition = _initialPosition;
+			RectTransform.anchoredPosition = position + Offset;
+			_previousPosition = RectTransform.anchoredPosition;
 		}
 
 		public void OnDrag(PointerEventData eventData)
@@ -46,10 +55,20 @@ namespace Game.ViewControllers
 
 		public void ResetDraggable()
 		{
-			RectTransform.pivot = _initialPivot;
-			RectTransform.anchoredPosition = _initialPosition;
-			
 			RectTransform.SetParent(_initialParent);
+			
+			RectTransform.pivot = _initialPivot;
+			
+			if (TweenPivot)
+			{
+				var duration = Constants.Gameplay.PIECE_PIVOT_TWEEN_TIME;
+				
+				_resetTweener = DOVirtual.Vector2(RectTransform.anchoredPosition, _initialPosition, duration, UpdatePosition);
+			}
+			else
+			{
+				RectTransform.anchoredPosition = _initialPosition;
+			}
 		}
 
 		public void MoveIntoTransform(Transform newTransform)
@@ -59,6 +78,11 @@ namespace Game.ViewControllers
 
 			RectTransform.pivot = _initialPivot;
 			RectTransform.anchoredPosition = Vector3.zero;
+		}
+
+		private void UpdatePosition(Vector2 value)
+		{
+			RectTransform.anchoredPosition = value;
 		}
 	}
 }
