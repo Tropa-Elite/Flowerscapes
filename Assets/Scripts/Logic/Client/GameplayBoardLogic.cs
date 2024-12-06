@@ -18,11 +18,13 @@ namespace Game.Logic.Client
 	{
 		IObservableListReader<UniqueId> PieceDeck { get; }
 
+		bool TryGetTileData(int row, int column, out ITileData tile);
+
 		bool TryGetPieceFromTile(int row, int column, out IPieceData piece);
 
 		bool IsGameOver();
 
-		List<(int, int, IPieceData)> GetAdjacentTileList(int row, int column);
+		List<ITileData> GetAdjacentTileList(int row, int column);
 	}
 
 	/// <inheritdoc />
@@ -32,7 +34,7 @@ namespace Game.Logic.Client
 
 		void SetPieceOnTile(UniqueId pieceId, int row, int column);
 
-		void ActivateTile(int row, int column, IPiecesLogic pieceLogic);
+		void ActivateTile(int row, int column, IPiecesLogic pieceLogic, out List<PieceTransferData> transferHistory);
 
 		void CleanUpTile(int row, int column);
 
@@ -67,18 +69,29 @@ namespace Game.Logic.Client
 		}
 
 		/// <inheritdoc />
-		public bool TryGetPieceFromTile(int row, int column, out IPieceData piece)
+		public bool TryGetTileData(int row, int column, out ITileData tile)
 		{
-			piece = null;
-
-			if (row < 0 || column < 0 || row >= Constants.Gameplay.BOARD_ROWS || column >= Constants.Gameplay.BOARD_COLUMNS)
+			tile = null;
+			
+			if (row < 0 || column < 0 || 
+			    row >= Constants.Gameplay.BOARD_ROWS || column >= Constants.Gameplay.BOARD_COLUMNS ||
+			    Data.Board[row, column] == null)
 			{
 				return false;
 			}
+			
+			tile = Data.Board[row, column];
 
-			var tile = Data.Board[row, column];
+			return true;
+		}
 
-			if (tile == null || !GameDataProvider.PieceDataProvider.Pieces.TryGetValue(tile.Piece, out piece))
+		/// <inheritdoc />
+		public bool TryGetPieceFromTile(int row, int column, out IPieceData piece)
+		{
+			piece = null;
+			
+			if (!TryGetTileData(row, column, out var tile) || 
+			    !GameDataProvider.PieceDataProvider.Pieces.TryGetValue(tile.PieceId, out piece))
 			{
 				return false;
 			}
@@ -97,7 +110,7 @@ namespace Game.Logic.Client
 			{
 				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
 				{
-					if (Data.Board[i, j] == null || !Data.Board[i, j].Piece.IsValid)
+					if (Data.Board[i, j] == null || !Data.Board[i, j].PieceId.IsValid)
 					{
 						return false;
 					}
@@ -108,23 +121,23 @@ namespace Game.Logic.Client
 		}
 
 		/// <inheritdoc />
-		public List<(int, int, IPieceData)> GetAdjacentTileList(int row, int column)
+		public List<ITileData> GetAdjacentTileList(int row, int column)
 		{
-			var list = new List<(int, int, IPieceData)>();
+			var list = new List<ITileData>();
 
 			for (var i = -1; i < 2; i++)
 			{
-				if (i != 0 && TryGetPieceFromTile(row + i, column, out var piece))
+				if (i != 0 && TryGetTileData(row + i, column, out var tile) && tile.PieceId.IsValid)
 				{
-					list.Add((row + i, column, piece));
+					list.Add(tile);
 				}
 			}
 
 			for (var i = -1; i < 2; i++)
 			{
-				if (i != 0 && TryGetPieceFromTile(row, column + i, out var piece))
+				if (i != 0 && TryGetTileData(row, column + i, out var tile) && tile.PieceId.IsValid)
 				{
-					list.Add((row, column + i, piece));
+					list.Add(tile);
 				}
 			}
 
@@ -136,7 +149,7 @@ namespace Game.Logic.Client
 		{
 			if (Data.Board[row, column] != null)
 			{
-				Data.Board[row, column].Piece = pieceId;
+				Data.Board[row, column].PieceId = pieceId;
 
 				return;
 			}
@@ -145,41 +158,43 @@ namespace Game.Logic.Client
 			{
 				Row = row,
 				Column = column,
-				Piece = pieceId
+				PieceId = pieceId
 			};
 		}
 
 		/// <inheritdoc />
-		public void ActivateTile(int row, int column, IPiecesLogic pieceLogic)
+		public void ActivateTile(int row, int column, IPiecesLogic pieceLogic, out List<PieceTransferData> transferHistory)
 		{
-			var piece = pieceLogic.Pieces[Data.Board[row, column].Piece];
+			var tile = Data.Board[row, column];
 			var adjacentTiles = GetAdjacentTileList(row, column);
-			var pieceColors = piece.GetSlicesColors();
-			var otherColorCache = new Dictionary<SliceColor, IPieceData>();
+			var slices = pieceLogic.Pieces[tile.PieceId].GetSlicesColors();
+			var slicesCache = new Dictionary<SliceColor, IPieceData>();
 			var transferDone = false;
 			var counter = 10;
+			
+			transferHistory = new List<PieceTransferData>();
 
 			do
 			{
 				transferDone = false;
 
-				foreach (var tile in adjacentTiles)
+				foreach (var nextTile in adjacentTiles)
 				{
-					if (tile.Item3.IsFull || tile.Item3.IsEmpty) continue;
-
-					transferDone = TryTransferSlices(piece, tile.Item3, pieceLogic, pieceColors, otherColorCache) || transferDone;
+					transferDone = TryTransferSlices(tile, nextTile, pieceLogic, slices, slicesCache, transferHistory) || transferDone;
 				}
 			} 
 			while (transferDone && counter-- > 0);
 
-			adjacentTiles.Insert(0, (row, column, piece));
+			adjacentTiles.Insert(0, tile);
 
-			foreach (var tile in adjacentTiles)
+			foreach (var nextTile in adjacentTiles)
 			{
-				if (tile.Item3.Slices.Count == 0 || tile.Item3.Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES)
+				var piece = pieceLogic.Pieces[nextTile.PieceId];
+				
+				if (piece.Slices.Count == 0 || piece.Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES)
 				{
-					CleanUpTile(tile.Item1, tile.Item2);
-					pieceLogic.Pieces.Remove(tile.Item3.Id);
+					pieceLogic.Pieces.Remove(nextTile.PieceId);
+					CleanUpTile(nextTile.Row, nextTile.Column);
 				}
 			}
 		}
@@ -189,7 +204,7 @@ namespace Game.Logic.Client
 		{
 			if(Data.Board[row, column] != null)
 			{
-				Data.Board[row, column].Piece = UniqueId.Invalid;
+				Data.Board[row, column].PieceId = UniqueId.Invalid;
 			}
 		}
 
@@ -228,52 +243,93 @@ namespace Game.Logic.Client
 			}
 		}
 
-		private bool TryTransferSlices(IPieceData piece, IPieceData pieceTile, IPiecesLogic pieceLogic,
-			Dictionary<SliceColor, int> pieceColors, Dictionary<SliceColor, IPieceData> otherColorCache)
+		private bool TryTransferSlices(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache,
+			List<PieceTransferData> transferHistory)
 		{
-			var tileColors = pieceTile.GetSlicesColors();
-
-			foreach (var colorPair in tileColors)
+			var centerPiece = pieceLogic.Pieces[centerTile.PieceId];
+			var nextPiece = pieceLogic.Pieces[nextTile.PieceId];
+			
+			if (nextPiece.IsFull || nextPiece.IsEmpty)
 			{
-				var color = colorPair.Key;
-				var canReceiveSlices = tileColors.Count > 1 && piece.SlicesFreeSpace > colorPair.Value;
+				return false;
+			}
+			
+			var nextSlices = nextPiece.GetSlicesColors();
+
+			foreach (var slicePair in nextSlices)
+			{
+				var color = slicePair.Key;
+				var canReceiveSlices = nextSlices.Count > 1 && centerPiece.SlicesFreeSpace > slicePair.Value;
 				
-				if (pieceColors.ContainsKey(color))
+				// Check first if the target piece has the color being processed to transfer or then give it up from cache collection
+				if (centerSlices.ContainsKey(color))
 				{
-					if (!piece.IsEmpty && !piece.IsFull && (pieceColors.Count == 1 || canReceiveSlices))
+					if (!centerPiece.IsEmpty && !centerPiece.IsFull && (centerSlices.Count == 1 || canReceiveSlices))
 					{
-						pieceColors[color] += pieceLogic.TransferSlices(pieceTile.Id, piece.Id, color);
+						TransferToCenterTile(centerTile, nextTile, pieceLogic, centerSlices, color, out var transferCount);
+						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, transferCount));
 						
 						return true;
 					}
-					else if (tileColors.Count == 1)
+					if (nextSlices.Count == 1)
 					{
-						pieceColors[color] -= pieceLogic.TransferSlices(piece.Id, pieceTile.Id, color);
-
-						if (pieceColors[color] == 0)
-						{
-							pieceColors.Remove(color);
-						}
-						if (!pieceTile.IsFull)
-						{
-							otherColorCache.Add(color, pieceTile);
-						}
+						TransferFromCenterTile(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color, out var transferCount);
+						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, transferCount));
 						
 						return true;
 					}
 				}
-				else if (otherColorCache.TryGetValue(color, out var cachePiece) && 
-					cachePiece.Id != pieceTile.Id && cachePiece.SlicesFreeSpace >0)
+				else if (TryTransferFromCache(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color))
 				{
-					pieceColors[color] = pieceLogic.TransferSlices(pieceTile.Id, piece.Id, color, cachePiece.SlicesFreeSpace);
-
-					otherColorCache.Remove(color);
+					transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, centerSlices[color]));
 					
 					return true;
 				}
 			}
 
 			return false;
+		}
+
+		private void TransferToCenterTile(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, SliceColor color, out int transferCount)
+		{
+			transferCount = pieceLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color);
+			centerSlices[color] += transferCount;
+		}
+
+		private void TransferFromCenterTile(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache,
+			SliceColor color, out int transferCount)
+		{
+			var nextPiece = pieceLogic.Pieces[nextTile.PieceId];
+			
+			transferCount = pieceLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color);
+			centerSlices[color] -= transferCount;
+
+			if (centerSlices[color] == 0)
+			{
+				centerSlices.Remove(color);
+			}
+			if (!nextPiece.IsFull)
+			{
+				slicesCache.Add(color, nextPiece);
+			}
+		}
+
+		private bool TryTransferFromCache(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache, SliceColor color)
+		{
+			if (!slicesCache.TryGetValue(color, out var cachePiece) || cachePiece.Id == nextTile.PieceId || cachePiece.IsFull)
+			{
+				return false;
+			}
+			
+			centerSlices[color] = pieceLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color, cachePiece.SlicesFreeSpace);
+
+			slicesCache.Remove(color);
+			
+			return true;
 		}
 	}
 }

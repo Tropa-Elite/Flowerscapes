@@ -103,12 +103,6 @@ namespace Game.Logic.Client
 				piece.Slices.RemoveAt(i);
 			}
 
-			// Piece is empty
-			if (piece.Slices.Count == 0)
-			{
-				_pieces.Remove(pieceId);
-			}
-
 			return count;
 		}
 	}

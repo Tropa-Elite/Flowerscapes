@@ -44,6 +44,7 @@ namespace Game.Controllers
 
 			_deckViewController = Object.FindFirstObjectByType<PieceDeckViewController>();
 
+			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDroppedMessage);
 			CreatePiecesPool(piece.GetComponent<PieceViewController>());
 		}
 
@@ -57,6 +58,7 @@ namespace Game.Controllers
 		{
 			_pool.Dispose();
 			Object.Destroy(_pool.SampleEntity.transform.parent.gameObject);
+			_services.MessageBrokerService.Unsubscribe<OnPieceDroppedMessage>(this);
 
 			_pool = null;
 			_deckViewController = null;
@@ -78,11 +80,6 @@ namespace Game.Controllers
 			}
 			
 			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tile.Row, tile.Column));
-			
-			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
-			{
-				SpawnDeckPieces();
-			}
 		}
 
 		public void OnPieceDrag(TileViewController tileOvering)
@@ -102,6 +99,14 @@ namespace Game.Controllers
 			}
 
 			_overingTile = tileOvering;
+		}
+
+		private void OnPieceDroppedMessage(OnPieceDroppedMessage message)
+		{
+			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
+			{
+				SpawnDeckPieces();
+			}
 		}
 
 		private void CreatePiecesPool(PieceViewController piece)

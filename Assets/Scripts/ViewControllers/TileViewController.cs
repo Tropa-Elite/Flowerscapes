@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Data;
 using Game.Utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,7 @@ namespace Game.ViewControllers
 
 		private Color _initialColor;
 
-		public int Id => Row * 100 + Column;
+		public int Id => TileData.ToTileId(_row, _column);
 		public int Row => _row;
 		public int Column => _column;
 

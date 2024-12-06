@@ -5,6 +5,7 @@ using Game.Logic.Shared;
 using Game.Messages;
 using Game.Utils;
 using GameLovers.Services;
+using UnityEngine;
 
 namespace Game.Commands
 {
@@ -35,10 +36,11 @@ namespace Game.Commands
 				throw new LogicException($"There is already a piece on tile ({_row}, {_column})");
 			}
 
-			tileList.Insert(0, (_row, _column, gameLogic.PiecesLogic.Pieces[_pieceId]));
-			boardLogic.SetPieceOnTile(_pieceId, _row, _column);
 			boardLogic.PieceDeck.Remove(_pieceId);
-			boardLogic.ActivateTile(_row, _column, gameLogic.PiecesLogic);
+			boardLogic.SetPieceOnTile(_pieceId, _row, _column);
+			boardLogic.TryGetTileData(_row, _column, out var tile);
+			tileList.Insert(0, tile);
+			boardLogic.ActivateTile(_row, _column, gameLogic.PiecesLogic, out var transferHistory);
 
 			if(boardLogic.PieceDeck.Count == 0)
 			{
@@ -48,13 +50,18 @@ namespace Game.Commands
 			// Update the piece changes
 			for (var i = 0; i < tileList.Count; i++)
 			{
-				if(gameLogic.PiecesLogic.Pieces.ContainsKey(tileList[i].Item3.Id))
+				if(gameLogic.PiecesLogic.Pieces.ContainsKey(tileList[i].PieceId))
 				{
-					gameLogic.PiecesLogic.Pieces.InvokeUpdate(tileList[i].Item3.Id);
+					gameLogic.PiecesLogic.Pieces.InvokeUpdate(tileList[i].PieceId);
 				}
 			}
 
-			messageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = _pieceId, Row = _row, Column = _column });
+			messageBrokerService.Publish(new OnPieceDroppedMessage
+			{
+				PieceId = _pieceId, 
+				Tile = tile, 
+				TransferHistory = transferHistory
+			});
 
 			if (boardLogic.IsGameOver())
 			{

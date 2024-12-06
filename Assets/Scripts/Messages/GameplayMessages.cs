@@ -1,4 +1,6 @@
-﻿using Game.Ids;
+﻿using System.Collections.Generic;
+using Game.Data;
+using Game.Ids;
 using GameLovers.Services;
 
 namespace Game.Messages
@@ -11,7 +13,7 @@ namespace Game.Messages
 	public struct OnPieceDroppedMessage : IMessage
 	{
 		public UniqueId PieceId;
-		public int Row;
-		public int Column;
+		public ITileData Tile;
+		public List<PieceTransferData> TransferHistory;
 	}
 }
