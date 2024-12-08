@@ -54,7 +54,7 @@ namespace Game.StateMachines
 
 		private void SubscribeEvents()
 		{
-			_services.MessageBrokerService.Subscribe<OnPlayClickedMessage>(OnPlayClickedMessage);
+			// Subscribe to any events
 		}
 
 		private void UnsubscribeEvents()
@@ -64,17 +64,17 @@ namespace Game.StateMachines
 
 		private void OpenMainScreenUi()
 		{
-			_uiService.OpenUiAsync<MainMenuPresenter>().Forget();
+			var data = new MainMenuPresenter.PresenterData
+			{
+				OnPlayClicked = () => _statechartTrigger(PLAY_CLICKED_EVENT)
+			};
+			
+			_uiService.OpenUiAsync<MainMenuPresenter, MainMenuPresenter.PresenterData>(data).Forget();
 		}
 
 		private void CloseMainScreenUi()
 		{
 			_uiService.CloseUi<MainMenuPresenter>();
-		}
-
-		private void OnPlayClickedMessage(OnPlayClickedMessage messagage)
-		{
-			_statechartTrigger(PLAY_CLICKED_EVENT);
 		}
 
 		private async UniTask LoadMenuAssets()

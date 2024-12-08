@@ -1,10 +1,13 @@
-﻿using Game.Messages;
+﻿using System;
+using Game.Messages;
 using Game.Services;
 using GameLovers;
 using GameLovers.Services;
+using GameLovers.StatechartMachine;
 using GameLovers.UiService;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Game.Presenters
@@ -14,18 +17,19 @@ namespace Game.Presenters
 	/// - Showing the Main Menu button to start the game
 	/// - Showing game instructions and objectives about the game for the player to plat
 	/// </summary>
-	public class MainMenuPresenter : UiPresenter
+	public class MainMenuPresenter : UiPresenterData<MainMenuPresenter.PresenterData>
 	{
+		public struct PresenterData
+		{
+			public UnityAction OnPlayClicked;
+		}
+		
 		[SerializeField] private TextMeshProUGUI _version;
 		[SerializeField] private Button _playButton;
 
-		private IGameServicesLocator _services;
-
 		private void Awake()
 		{
-			_services = MainInstaller.Resolve<IGameServicesLocator>();
-
-			_playButton.onClick.AddListener(OnPlayButtonClicked);
+			_playButton.onClick.AddListener(() => Data.OnPlayClicked.Invoke());
 		}
 
 		private void Start()
@@ -34,11 +38,6 @@ namespace Game.Presenters
 				$"internal = v{VersionServices.VersionInternal}\n" +
 				$"external = v{VersionServices.VersionExternal}\n" +
 				$"build number = {VersionServices.BuildNumber}";
-		}
-
-		private void OnPlayButtonClicked()
-		{
-			_services.MessageBrokerService.PublishSafe(new OnPlayClickedMessage());
 		}
 	}
 }

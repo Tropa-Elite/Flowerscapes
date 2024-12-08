@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
+using DG.Tweening;
 using Game.Controllers;
 using Game.Data;
 using Game.Ids;
 using Game.Logic;
 using Game.Utils;
-using Game.Views;
 using GameLovers;
 using GameLovers.Services;
 using UnityEngine;
@@ -16,7 +18,7 @@ namespace Game.ViewControllers
 		IPoolEntitySpawn<UniqueId>, IPoolEntityDespawn
 	{
 		[SerializeField] private DraggableViewController _draggableView;
-		[SerializeField] private PieceSliceView[] _slices;
+		[SerializeField] private List<SliceViewController> _slices;
 		[HideInInspector]
 		[SerializeField] private GraphicRaycaster _canvasRaycaster;
 
@@ -26,11 +28,14 @@ namespace Game.ViewControllers
 
 		public UniqueId Id => _uniqueId;
 		public DraggableViewController DraggableView => _draggableView;
+		public bool IsFull => _slices.TrueForAll(slice => slice.isActiveAndEnabled);
+		public bool IsEmpty => _slices.TrueForAll(slice => !slice.isActiveAndEnabled);
+		public bool IsComplete => IsFull && _slices.Select(s => s.SliceColor).Distinct().Count() == 1;
 
 		protected override void OnEditorValidate()
 		{
 			_draggableView = _draggableView != null ? _draggableView : GetComponent<DraggableViewController>();
-			_slices ??= GetComponentsInChildren<PieceSliceView>();
+			_slices = _slices.Count == 0 ? new List<SliceViewController>(GetComponentsInChildren<SliceViewController>()) : _slices;
 		}
 
 		private void Awake()
@@ -103,29 +108,56 @@ namespace Game.ViewControllers
 			_uniqueId = id;
 			_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(id);
 
-			_dataProvider.PieceDataProvider.Pieces.InvokeObserve(id, OnPieceUpdated);
+			UpdateSlices();
 		}
 
 		/// <inheritdoc />
 		public void OnDespawn()
 		{
-			_dataProvider.PieceDataProvider.Pieces.StopObserving(_uniqueId);
-
 			_uniqueId = UniqueId.Invalid;
 		}
 
-		private void OnPieceUpdated(UniqueId id, IPieceData oldData, IPieceData newData, ObservableUpdateType updateType)
+		public void AddSlice(SliceViewController newSlice)
 		{
-			if (id != _uniqueId) return;
+			var index = _slices.FindLastIndex(slice => slice.isActiveAndEnabled && slice.SliceColor == newSlice.SliceColor);
+			var lastColor = newSlice.SliceColor;
 
-			switch (updateType)
+			for (var i = index + 1; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
 			{
-				case ObservableUpdateType.Updated:
-					UpdateSlices();
+				var color = _slices[i].SliceColor;
+				
+				_slices[i].SliceColor = lastColor;
+				lastColor = color;
+				
+				if (!_slices[i].isActiveAndEnabled)
+				{
+					_slices[i].gameObject.SetActive(true);
 					break;
-				case ObservableUpdateType.Removed:
-					_controller.Despawn(this);
+				}
+			}
+		}
+
+		public void RemoveSlice(SliceViewController oldSlice)
+		{
+			var shifted = false;
+
+			for (var i = 0; i < _slices.Count - 1; i++)
+			{
+				if (_slices[i].SliceColor == oldSlice.SliceColor && _slices[i + 1].SliceColor != oldSlice.SliceColor)
+				{
+					shifted = true;
+				}
+
+				if (shifted)
+				{
+					_slices[i].OnSpawn(_slices[i + 1].SliceColor);
+				}
+
+				if (_slices[i + 1].IsDisabled)
+				{
+					_slices[i].Disable();
 					break;
+				}
 			}
 		}
 
@@ -137,7 +169,7 @@ namespace Game.ViewControllers
 			{
 				if (i >= slices.Count)
 				{
-					_slices[i].gameObject.SetActive(false);
+					_slices[i].Disable();
 					continue;
 				}
 
@@ -176,6 +208,13 @@ namespace Game.ViewControllers
 			tile = hitTile;
 
 			return true;
+		}
+
+		public void AnimateComplete(IObjectPool<PieceViewController> pool)
+		{
+			var duration = Constants.Gameplay.PIECE_COMPLETE_TWEEN_TIME;
+			
+			RectTransform.DOPunchScale(Vector3.one * 1.5f, duration).OnComplete(() => pool.Despawn(this));
 		}
 	}
 }

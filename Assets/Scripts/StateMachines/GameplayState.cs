@@ -23,7 +23,9 @@ namespace Game.StateMachines
 		public static readonly IStatechartEvent GAME_OVER_EVENT = new StatechartEvent("Game Over Event");
 		public static readonly IStatechartEvent GAME_RESTART_EVENT = new StatechartEvent("Game Restart Event");
 		
+		private static readonly IStatechartEvent PAUSE_CLICKED_EVENT = new StatechartEvent("Pause Clicked Event");
 		private static readonly IStatechartEvent MENU_CLICKED_EVENT = new StatechartEvent("Menu Clicked Event");
+		private static readonly IStatechartEvent CLOSE_CLICKED_EVENT = new StatechartEvent("Close Clicked Event");
 
 		private readonly IGameUiService _uiService;
 		private readonly IGameServicesLocator _services;
@@ -51,6 +53,7 @@ namespace Game.StateMachines
 			var gameStateCheck = stateFactory.Choice("GameOver Check");
 			var gameplay = stateFactory.State("Gameplay");
 			var gameOver = stateFactory.State("GameOver");
+			var pauseScreen = stateFactory.State("Pause Screen");
 
 			initial.Transition().Target(gameplayLoading);
 			initial.OnExit(SubscribeEvents);
@@ -63,11 +66,18 @@ namespace Game.StateMachines
 
 			gameplay.OnEnter(OpenGameplayUi);
 			gameplay.Event(GAME_OVER_EVENT).Target(gameOver);
+			gameplay.Event(PAUSE_CLICKED_EVENT).Target(pauseScreen);
 			gameplay.OnExit(CloseGameplayUi);
+			
+			pauseScreen.OnEnter(OpenPauseScreenUi);
+			pauseScreen.Event(GAME_OVER_EVENT).Target(gameOver);
+			pauseScreen.Event(GAME_RESTART_EVENT).Target(gameStateCheck);
+			pauseScreen.Event(CLOSE_CLICKED_EVENT).Target(gameplay);
+			pauseScreen.Event(MENU_CLICKED_EVENT).Target(final);
+			pauseScreen.OnExit(ClosePauseScreenUi);
 
 			gameOver.OnEnter(OpenGameOverUi);
 			gameOver.Event(GAME_RESTART_EVENT).Target(gameStateCheck);
-			gameOver.Event(MENU_CLICKED_EVENT).Target(final);
 			gameOver.OnExit(CloseGameOverUi);
 
 			final.OnEnter(UnloadAssets);
@@ -78,7 +88,6 @@ namespace Game.StateMachines
 		{
 			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
 			_services.MessageBrokerService.Subscribe<OnGameRestartMessage>(OnGameRestartMessage);
-			_services.MessageBrokerService.Subscribe<OnReturnMenuClickedMessage>(OnMenutClickedMessage);
 		}
 
 		private void UnsubscribeEvents()
@@ -89,11 +98,6 @@ namespace Game.StateMachines
 		private void OnGameOverMessage(OnGameOverMessage message)
 		{
 			_statechartTrigger(GAME_OVER_EVENT);
-		}
-
-		private void OnMenutClickedMessage(OnReturnMenuClickedMessage message)
-		{
-			_statechartTrigger(MENU_CLICKED_EVENT);
 		}
 
 		private void OnGameRestartMessage(OnGameRestartMessage message)
@@ -112,9 +116,30 @@ namespace Game.StateMachines
 			return _gameDataProvider.GameplayBoardDataProvider.IsGameOver();
 		}
 
+		private void OpenPauseScreenUi()
+		{
+			var data = new PauseScreenPresenter.PresenterData
+			{
+				OnReturnMenuClicked = () => _statechartTrigger(MENU_CLICKED_EVENT),
+				OnCloseClicked = () => _statechartTrigger(CLOSE_CLICKED_EVENT)
+			};
+			
+			_uiService.OpenUiAsync<PauseScreenPresenter, PauseScreenPresenter.PresenterData>(data).Forget();
+		}
+
+		private void ClosePauseScreenUi()
+		{
+			_uiService.CloseUi<PauseScreenPresenter>();
+		}
+
 		private void OpenGameplayUi()
 		{
-			_uiService.OpenUiAsync<MainHudPresenter>().Forget();
+			var data = new MainHudPresenter.PresenterData
+			{
+				OnPauseClicked = () => _statechartTrigger(PAUSE_CLICKED_EVENT)
+			};
+			
+			_uiService.OpenUiAsync<MainHudPresenter, MainHudPresenter.PresenterData>(data).Forget();
 		}
 
 		private void CloseGameplayUi()

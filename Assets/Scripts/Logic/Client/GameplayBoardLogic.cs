@@ -268,21 +268,21 @@ namespace Game.Logic.Client
 					if (!centerPiece.IsEmpty && !centerPiece.IsFull && (centerSlices.Count == 1 || canReceiveSlices))
 					{
 						TransferToCenterTile(centerTile, nextTile, pieceLogic, centerSlices, color, out var transferCount);
-						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, transferCount));
+						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, nextPiece.Id, centerPiece.Id, color, transferCount));
 						
 						return true;
 					}
 					if (nextSlices.Count == 1)
 					{
 						TransferFromCenterTile(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color, out var transferCount);
-						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, transferCount));
+						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, transferCount));
 						
 						return true;
 					}
 				}
 				else if (TryTransferFromCache(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color))
 				{
-					transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, color, centerSlices[color]));
+					transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, centerSlices[color]));
 					
 					return true;
 				}

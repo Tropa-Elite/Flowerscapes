@@ -27,7 +27,7 @@ namespace Game.ViewControllers
 		// Order of execution is important in this method because parenting changes the local reference position of the transform
 		public void OnPointerDown(PointerEventData eventData)
 		{
-			if (_resetTweener != null && _resetTweener.IsPlaying()) return;
+			if (_resetTweener.IsActive() && _resetTweener.IsPlaying()) return;
 			
 			_initialParent = RectTransform.parent;
 			_initialPosition = RectTransform.anchoredPosition;

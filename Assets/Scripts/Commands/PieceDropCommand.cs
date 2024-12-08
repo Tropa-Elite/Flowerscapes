@@ -29,7 +29,6 @@ namespace Game.Commands
 		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			var boardLogic = gameLogic.GameplayBoardLogic;
-			var tileList = gameLogic.GameplayBoardLogic.GetAdjacentTileList(_row, _column);
 
 			if (boardLogic.TryGetPieceFromTile(_row, _column, out _))
 			{
@@ -38,8 +37,6 @@ namespace Game.Commands
 
 			boardLogic.PieceDeck.Remove(_pieceId);
 			boardLogic.SetPieceOnTile(_pieceId, _row, _column);
-			boardLogic.TryGetTileData(_row, _column, out var tile);
-			tileList.Insert(0, tile);
 			boardLogic.ActivateTile(_row, _column, gameLogic.PiecesLogic, out var transferHistory);
 
 			if(boardLogic.PieceDeck.Count == 0)
@@ -47,19 +44,10 @@ namespace Game.Commands
 				boardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
 			}
 
-			// Update the piece changes
-			for (var i = 0; i < tileList.Count; i++)
-			{
-				if(gameLogic.PiecesLogic.Pieces.ContainsKey(tileList[i].PieceId))
-				{
-					gameLogic.PiecesLogic.Pieces.InvokeUpdate(tileList[i].PieceId);
-				}
-			}
-
 			messageBrokerService.Publish(new OnPieceDroppedMessage
 			{
 				PieceId = _pieceId, 
-				Tile = tile, 
+				TileId = TileData.ToTileId(_row, _column), 
 				TransferHistory = transferHistory
 			});
 
