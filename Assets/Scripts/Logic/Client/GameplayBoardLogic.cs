@@ -272,7 +272,7 @@ namespace Game.Logic.Client
 						
 						return true;
 					}
-					if (nextSlices.Count == 1)
+					if (!centerPiece.IsComplete && nextSlices.Count == 1)
 					{
 						TransferFromCenterTile(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color, out var transferCount);
 						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, transferCount));

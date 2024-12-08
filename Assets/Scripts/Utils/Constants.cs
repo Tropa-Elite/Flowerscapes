@@ -38,6 +38,7 @@ namespace Game.Utils
 			public const float PIECE_DESKTOP_SPEED = 1f;
 			public const float PIECE_MOBILE_SPEED = 3f;
 			public const float PIECE_PIVOT_TWEEN_TIME = 0.4f;
+			public const float PIECE_DELAY_TWEEN_TIME = 0.1f;
 			public const float SLICE_TRANSFER_TWEEN_TIME = 0.4f;
 			public const float PIECE_COMPLETE_TWEEN_TIME= 0.4f;
 			public static readonly Vector2 PIECE_DESKTOP_OFFSET = new Vector2(0f, 0.2f);

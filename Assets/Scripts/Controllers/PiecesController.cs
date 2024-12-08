@@ -112,7 +112,7 @@ namespace Game.Controllers
 				{
 					var slice = _poolSlices.Spawn(transfer.SliceColor);
 					
-					StartSliceTransferAnimation(sourcePiece, targetPiece, slice, i * 0.1f);
+					StartSliceTransferAnimation(sourcePiece, targetPiece, slice, i * Constants.Gameplay.PIECE_DELAY_TWEEN_TIME);
 				}
 			}
 		}

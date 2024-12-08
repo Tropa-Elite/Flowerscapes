@@ -213,8 +213,10 @@ namespace Game.ViewControllers
 		public void AnimateComplete(IObjectPool<PieceViewController> pool)
 		{
 			var duration = Constants.Gameplay.PIECE_COMPLETE_TWEEN_TIME;
+			var delay = Constants.Gameplay.PIECE_DELAY_TWEEN_TIME;
+			var poolClosure = pool;
 			
-			RectTransform.DOPunchScale(Vector3.one * 1.5f, duration).OnComplete(() => pool.Despawn(this));
+			RectTransform.DOPunchScale(Vector3.one * 1.5f, duration).SetDelay(delay).OnComplete(() => poolClosure.Despawn(this));
 		}
 	}
 }
