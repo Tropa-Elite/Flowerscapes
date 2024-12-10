@@ -92,7 +92,7 @@ namespace Game
 
 			await Task.WhenAll(VersionServices.LoadVersionDataAsync(), UnityServices.InitializeAsync());
 
-			InitAnalytics();
+			_services.Init();
 			_stateMachine.Run();
 		}
 
@@ -158,13 +158,6 @@ namespace Game
 			}
 
 			_services.AnalyticsService.ErrorsCalls.CrashLog(e.Exception);
-		}
-
-		private void InitAnalytics()
-		{
-			// TODO: request data collection permition (use ask age screen for example)
-			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
-			_services.AnalyticsService.SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
 		}
 
 		private void InitAtt()

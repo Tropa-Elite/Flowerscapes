@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using GameAnalyticsSDK;
 using UnityEngine;
 
 namespace Game.Services.Analytics
@@ -31,6 +32,7 @@ namespace Game.Services.Analytics
 					PlayFabClientAPI.WritePlayerEvent(request, null, null);
 				}
 				*/
+				GameAnalytics.NewDesignEvent(eventName, parameters);
 
 				if (parameters == null || parameters.Count == 0)
 				{

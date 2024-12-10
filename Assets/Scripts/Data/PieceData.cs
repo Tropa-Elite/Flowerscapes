@@ -1,6 +1,7 @@
 ﻿using Game.Ids;
 using Game.Utils;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.Data
 {
@@ -22,12 +23,10 @@ namespace Game.Data
 		UniqueId Id { get; }
 		IReadOnlyList<SliceColor> Slices { get; }
 		int SlicesFreeSpace => Constants.Gameplay.MAX_PIECE_SLICES - Slices.Count;
-		int TotalColorCount => GetColors().Count;
 		bool IsFull => Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES;
 		bool IsEmpty => Slices.Count == 0;
+		bool IsComplete => IsFull && Slices.All(s => s == Slices[0]);
 
-		int GetColorCount(SliceColor color);
-		List<SliceColor> GetColors();
 		Dictionary<SliceColor, int> GetSlicesColors();
 	}
 
@@ -42,38 +41,6 @@ namespace Game.Data
 
 		/// <inheritdoc />
 		IReadOnlyList<SliceColor> IPieceData.Slices => Slices;
-
-		/// <inheritdoc />
-		public int GetColorCount(SliceColor color)
-		{
-			var count = 0;
-
-			for (int i = 0; i < Slices.Count; i++)
-			{
-				if (Slices[i] == color)
-				{
-					count += 1;
-				}
-			}
-
-			return count;
-		}
-
-		/// <inheritdoc />
-		public List<SliceColor> GetColors()
-		{
-			var list = new List<SliceColor>();
-
-			for (int i = 0; i < Slices.Count; i++)
-			{
-				if (i == 0 || Slices[i] != Slices[i - 1])
-				{
-					list.Add(Slices[i]);
-				}
-			}
-
-			return list;
-		}
 
 		/// <inheritdoc />
 		public Dictionary<SliceColor, int> GetSlicesColors()

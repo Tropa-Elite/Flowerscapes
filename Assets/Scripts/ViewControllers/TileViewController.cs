@@ -1,26 +1,46 @@
-﻿using UnityEngine;
+﻿using System;
+using Game.Data;
+using Game.Utils;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.ViewControllers
 {
-	public class TileViewController : MonoBehaviour
+	public class TileViewController : ViewControllerBase
 	{
+		[SerializeField] private Image _image;
 		[SerializeField] private int _row = -1;
 		[SerializeField] private int _column = -1;
 
+		private Color _initialColor;
+
+		public int Id => TileData.ToTileId(_row, _column);
 		public int Row => _row;
 		public int Column => _column;
 
-		private void OnValidate()
+		protected override void OnEditorValidate()
 		{
-			if(_row >= 0)
+			_image = _image == null ? GetComponent<Image>() : _image;
+			
+			if(Id >= 0)
 			{
 				return;
 			}
 
-			var name = gameObject.name.Split('_');
+			var splitName = gameObject.name.Split('_');
 
-			_row = int.Parse(name[1]);
-			_column = int.Parse(name[2]);
+			_row = int.Parse(splitName[1]);
+			_column = int.Parse(splitName[2]);
+		}
+
+		private void Awake()
+		{
+			_initialColor = _image.color;
+		}
+
+		public void SetOveringState(bool isOvering)
+		{
+			_image.color = isOvering ? Constants.Gameplay.TILE_OVERING_COLOR : _initialColor;
 		}
 	}
 }

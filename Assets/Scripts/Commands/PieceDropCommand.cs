@@ -5,58 +5,51 @@ using Game.Logic.Shared;
 using Game.Messages;
 using Game.Utils;
 using GameLovers.Services;
-using System;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game.Commands
 {
 	/// <summary>
 	/// This command is responsible to handle the logic when a piece is dropped in the board
 	/// </summary>
-	public struct PieceDropCommand : IGameCommand<IGameLogicLocator>
+	public readonly struct PieceDropCommand : IGameCommand<IGameLogicLocator>
 	{
-		public UniqueId PieceId;
-		public int Row;
-		public int Column;
+		private readonly UniqueId _pieceId;
+		private readonly int _row;
+		private readonly int _column;
 
 		public PieceDropCommand(UniqueId pieceId, int row, int column)
 		{
-			PieceId = pieceId;
-			Row = row;
-			Column = column;
+			_pieceId = pieceId;
+			_row = row;
+			_column = column;
 		}
 
 		/// <inheritdoc />
 		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			var boardLogic = gameLogic.GameplayBoardLogic;
-			var tileList = gameLogic.GameplayBoardLogic.GetAdjacentTileList(Row, Column);
 
-			if (boardLogic.TryGetPieceFromTile(Row, Column, out _))
+			if (boardLogic.TryGetPieceFromTile(_row, _column, out _))
 			{
-				throw new LogicException($"There is already a piece on tile ({Row}, {Column})");
+				throw new LogicException($"There is already a piece on tile ({_row}, {_column})");
 			}
 
-			tileList.Insert(0, (Row, Column, gameLogic.PiecesLogic.Pieces[PieceId]));
-			boardLogic.SetPieceOnTile(PieceId, Row, Column);
-			boardLogic.PieceDeck.Remove(PieceId);
-			boardLogic.ActivateTile(Row, Column, gameLogic.PiecesLogic);
+			boardLogic.PieceDeck.Remove(_pieceId);
+			boardLogic.SetPieceOnTile(_pieceId, _row, _column);
+			boardLogic.ActivateTile(_row, _column, gameLogic.PiecesLogic, out var transferHistory);
 
 			if(boardLogic.PieceDeck.Count == 0)
 			{
 				boardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
 			}
 
-			// Update the piece changes
-			for (var i = 0; i < tileList.Count; i++)
+			messageBrokerService.Publish(new OnPieceDroppedMessage
 			{
-				if(gameLogic.PiecesLogic.Pieces.ContainsKey(tileList[i].Item3.Id))
-				{
-					gameLogic.PiecesLogic.Pieces.InvokeUpdate(tileList[i].Item3.Id);
-				}
-			}
-
-			messageBrokerService.Publish(new OnPieceDroppedMessage { PieceId = PieceId, Row = Row, Column = Column });
+				PieceId = _pieceId, 
+				TileId = TileData.ToTileId(_row, _column), 
+				TransferHistory = transferHistory
+			});
 
 			if (boardLogic.IsGameOver())
 			{

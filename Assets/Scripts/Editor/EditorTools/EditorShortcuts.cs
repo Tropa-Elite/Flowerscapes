@@ -9,10 +9,11 @@ namespace Game.Editor
 	/// </summary>
 	public class EditorShortcuts
 	{
-		[MenuItem("Tools/Scene/Force Compilation &r")]
-		private static void ForceCompilation()
+		[MenuItem("Tools/Scene/Force Script Reload &r")]
+		private static void ForceScriptReload()
 		{
-			CompilationPipeline.RequestScriptCompilation();
+			//CompilationPipeline.RequestScriptCompilation();
+			EditorUtility.RequestScriptReload();
 		}
 
 		[MenuItem("Tools/Scene/Open Boot Scene &1")]

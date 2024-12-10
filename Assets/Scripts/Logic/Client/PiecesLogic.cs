@@ -7,9 +7,6 @@ using GameLovers.ConfigsProvider;
 using GameLovers.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Game.Logic.Client
 {
@@ -104,12 +101,6 @@ namespace Game.Logic.Client
 				count++;
 
 				piece.Slices.RemoveAt(i);
-			}
-
-			// Piece is empty
-			if (piece.Slices.Count == 0)
-			{
-				_pieces.Remove(pieceId);
 			}
 
 			return count;

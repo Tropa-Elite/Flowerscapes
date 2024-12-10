@@ -66,7 +66,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rectTransform: {fileID: 4645758624398740786}
-  _canvasTransform: {fileID: 0}
+  DragSpeed: 1
+  TweenPivot: 1
+  Offset: {x: 0, y: 1}
 --- !u!114 &9104468920057316318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80,7 +82,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rectTransform: {fileID: 4645758624398740786}
-  _draggable: {fileID: 8881406675318454352}
+  _draggableView: {fileID: 8881406675318454352}
   _slices:
   - {fileID: 8208543524263208304}
   - {fileID: 4611391753120854639}
@@ -309,18 +311,6 @@ PrefabInstance:
       value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 560223860566398758, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 560223860566398758, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 560223860566398758, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 560223860566398758, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -367,14 +357,6 @@ PrefabInstance:
     - target: {fileID: 560223860566398758, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1087233203794115735, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 1087233203794115735, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 7173905002421847161, guid: 433782a17d9b3431c924e2af822803ab, type: 3}
       propertyPath: m_Name
