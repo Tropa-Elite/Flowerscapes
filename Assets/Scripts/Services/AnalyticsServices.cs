@@ -1,4 +1,7 @@
-﻿using Game.Services.Analytics;
+﻿using System;
+using Game.Services.Analytics;
+using GameAnalyticsSDK;
+using UnityEngine.Device;
 
 namespace Game.Services
 {
@@ -7,8 +10,8 @@ namespace Game.Services
 	/// </summary>
 	public static class AnalyticsEvents
 	{
-		public static readonly string SessionStart = "session_start";
-		public static readonly string SessionEnd = "session_end";
+		public static readonly string SessionStart = "game_session_start";
+		public static readonly string SessionEnd = "game_session_end";
 		public static readonly string SessionHeartbeat = "session_heartbeat";
 		public static readonly string AdsData = "ads_data";
 		public static readonly string LoadingStarted = "loading_started";
@@ -37,11 +40,10 @@ namespace Game.Services
 		AnalyticsUI UiCalls { get; }
 		/// <inheritdoc cref="AnalyticsMainMenu"/>
 		AnalyticsMainMenu MainMenuCalls { get; }
-		/// <inheritdoc cref="AnalyticsMatch"/>
 	}
 
-	/// <inheritdoc />
-	public class AnalyticsService : IAnalyticsService
+	/// <inheritdoc cref="IAnalyticsService" />
+	public class AnalyticsService : IAnalyticsService, IGameServicesInitializer
 	{
 		/// <inheritdoc />
 		public AnalyticsSession SessionCalls { get; }
@@ -61,6 +63,16 @@ namespace Game.Services
 			ErrorsCalls = new AnalyticsErrors(this);
 			UiCalls = new AnalyticsUI(this);
 			MainMenuCalls = new AnalyticsMainMenu(this);
+		}
+
+		/// <inheritdoc />
+		public void Init()
+		{
+			// TODO: request data collection permission (use ask age screen for example)
+			GameAnalytics.Initialize();
+			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
+			SessionCalls.SessionStart();
+			SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
 		}
 	}
 }

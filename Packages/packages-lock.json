@@ -21,6 +21,15 @@
       "dependencies": {},
       "hash": "f9fd769be7c634610f2a61aa914a1a55f34740e1"
     },
+    "com.gameanalytics.sdk": {
+      "version": "https://github.com/GameAnalytics/GA-SDK-UNITY.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.google.external-dependency-manager": "1.2.168"
+      },
+      "hash": "75366dcbd78c0c52e4c9b6133adfe40b9cbd8247"
+    },
     "com.gamelovers.assetsimporter": {
       "version": "https://github.com/CoderGamester/Unity-AssetsImporter.git",
       "depth": 0,
@@ -85,6 +94,13 @@
         "com.cysharp.unitask": "2.5.10"
       },
       "hash": "cc8cccd73382f1cf4935a5cc95399a0eb8a39de8"
+    },
+    "com.google.external-dependency-manager": {
+      "version": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "3e97c8d815ca4a947ff93fd468e7b2e108b39150"
     },
     "com.unity.2d.animation": {
       "version": "10.1.4",
