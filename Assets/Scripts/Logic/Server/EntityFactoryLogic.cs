@@ -54,7 +54,7 @@ namespace Game.Logic.Shared
 		/// <inheritdoc />
 		public PieceData CreatePiece()
 		{
-			var slicesCount = _gameLogic.RngLogic.Range(1, Constants.Gameplay.MAX_PIECE_SLICES - 1);
+			var slicesCount = _gameLogic.RngLogic.Range(1, Constants.Gameplay.Max_Piece_Slices - 1);
 			var colorCount = _gameLogic.RngLogic.Range(1, Math.Min(slicesCount, 3), true);
 			var colors = _randomColors.OrderBy(_ => _gameLogic.RngLogic.Next).ToList();
 			var minSlicesPerColor = (int)Math.Ceiling(slicesCount / (double)colorCount);

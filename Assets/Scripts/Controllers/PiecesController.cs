@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Game.Ids;
@@ -19,6 +20,7 @@ namespace Game.Controllers
 	{
 		void OnPieceDrop(UniqueId piece, TileViewController tile);
 		void OnPieceDrag(TileViewController tileOvering);
+		void DespawnPiece(PieceViewController piece);
 	}
 	
 	public class PiecesController : IPiecesController
@@ -27,8 +29,6 @@ namespace Game.Controllers
 		private readonly IGameServicesLocator _services;
 		private readonly IGameDataProviderLocator _dataProvider;
 		
-		private GameObjectPool<PieceViewController> _poolPieces;
-		private GameObjectPool<SliceViewController> _poolSlices;
 		private PieceDeckViewController _deckViewController;
 		private TileViewController _overingTile;
 
@@ -56,11 +56,10 @@ namespace Game.Controllers
 
 		public void CleanUp()
 		{
-			_poolPieces.Dispose();
-			Object.Destroy(_poolPieces.SampleEntity.transform.parent.gameObject);
 			_services.MessageBrokerService.Unsubscribe<OnPieceDroppedMessage>(this);
+			_services.PoolService.Dispose<SliceViewController>(true);
+			_services.PoolService.Dispose<PieceViewController>(true);
 
-			_poolPieces = null;
 			_deckViewController = null;
 		}
 
@@ -96,9 +95,15 @@ namespace Game.Controllers
 			_overingTile = tileOvering;
 		}
 
+		public void DespawnPiece(PieceViewController piece)
+		{
+			_services.PoolService.Despawn(piece);
+			_spawnedPieces.Remove(piece.Id);
+		}
+
 		private void OnPieceDroppedMessage(OnPieceDroppedMessage message)
 		{
-			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
+			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.Max_Deck_Pieces)
 			{
 				SpawnDeckPieces();
 			}
@@ -108,54 +113,28 @@ namespace Game.Controllers
 				var sourcePiece = _spawnedPieces[transfer.OriginPieceId];
 				var targetPiece = _spawnedPieces[transfer.TargetPieceId];
 
-				for(var i = 0; i < transfer.SlicesAmount; i++)
-				{
-					var slice = _poolSlices.Spawn(transfer.SliceColor);
-					
-					StartSliceTransferAnimation(sourcePiece, targetPiece, slice, i * Constants.Gameplay.PIECE_DELAY_TWEEN_TIME);
-				}
+				TransferSlices(sourcePiece, targetPiece, transfer.SliceColor, transfer.SlicesAmount);
 			}
 		}
 
-		private void StartSliceTransferAnimation(PieceViewController fromPiece, PieceViewController toPiece, 
-			SliceViewController slice, float delay)
+		private void TransferSlices(PieceViewController sourcePiece, PieceViewController targetPiece, SliceColor color, int amount)
 		{
-			var duration = Constants.Gameplay.SLICE_TRANSFER_TWEEN_TIME;
-			var fromPieceClosure = fromPiece;
-			var toPieceClosure = toPiece;
-			var sliceClosure = slice;
+			var parent = _services.PoolService.GetPool<SliceViewController>().SampleEntity.transform.parent;
+			var targetStartIndex = targetPiece.GetNextSliceIndex(color);
+			var sourceStartIndex = sourcePiece.Slices.FindIndex(s => s.SliceColor == color);
 			
-			slice.RectTransform.position = fromPiece.RectTransform.position;
-					
-			slice.RectTransform.DOMove(toPieceClosure.RectTransform.position, duration)
-				.SetDelay(delay)
-				.OnStart(() => OnSliceTransferAnimationStarted(fromPieceClosure, sliceClosure))
-				.OnComplete(() => OnSliceTransferAnimationCompleted(toPieceClosure, sliceClosure));
-		}
-		
-		private void OnSliceTransferAnimationStarted(PieceViewController piece, SliceViewController slice)
-		{
-			piece.RemoveSlice(slice);
-			
-			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(piece.Id) && piece.IsEmpty)
+			for (var i = 0; i < amount; i++)
 			{
-				_poolPieces.Despawn(piece);
-				_spawnedPieces.Remove(piece.Id);
+				var sourceIndex = sourceStartIndex + i;
+				var targetIndex = targetStartIndex + i;
+				var delay = i * Constants.Gameplay.Slice_Transfer_Delay_Time;
+				
+				sourcePiece.Slices[sourceIndex].RectTransform.SetParent(parent);
+				sourcePiece.Slices[sourceIndex].StartTransferAnimation(sourcePiece, targetPiece, targetIndex, delay);
 			}
-		}
-
-		private void OnSliceTransferAnimationCompleted(PieceViewController piece, SliceViewController slice)
-		{
-			piece.AddSlice(slice);
-			_poolSlices.Despawn(slice);
 			
-			// TODO: animate sort piece slices
-			
-			if (piece.IsComplete)
-			{
-				piece.AnimateComplete(_poolPieces);
-				_spawnedPieces.Remove(piece.Id);
-			}
+			sourcePiece.Slices.RemoveRange(sourceStartIndex, amount);
+			sourcePiece.AdjustPieceAnimation(amount * Constants.Gameplay.Slice_Transfer_Delay_Time);
 		}
 
 		private async UniTask CreatePools()
@@ -165,14 +144,19 @@ namespace Game.Controllers
 			var pieceAddress = AddressableId.Addressables_Prefabs_Piece.GetConfig().Address;
 			var sliceAddress = AddressableId.Addressables_Prefabs_Slice.GetConfig().Address;
 			var initPosition = Vector3.right * 10000; // Move out of the screen
-			var poolSize = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS / 2;
-			var piece = await assetService.InstantiateAsync(pieceAddress, initPosition, Quaternion.identity, poolTransform);
-			var slice = await assetService.InstantiateAsync(sliceAddress, initPosition, Quaternion.identity, poolTransform);
+			var poolSize = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns / 2;
+			var piece = await assetService.InstantiateAsync(pieceAddress, initPosition, Quaternion.identity, poolTransform, DeactivateAsset);
+			var slice = await assetService.InstantiateAsync(sliceAddress, initPosition, Quaternion.identity, poolTransform, DeactivateAsset);
+			var poolSlices = new GameObjectPool<SliceViewController>(100, slice.GetComponent<SliceViewController>());
+			var poolPieces = new GameObjectPool<PieceViewController>((uint)poolSize, piece.GetComponent<PieceViewController>(), PieceInstantiator);
 
-			_poolPieces = new GameObjectPool<PieceViewController>((uint)poolSize, piece.GetComponent<PieceViewController>(), PieceInstantiator);
-			_poolSlices = new GameObjectPool<SliceViewController>(100, slice.GetComponent<SliceViewController>());
+			_services.PoolService.AddPool(poolPieces);
+			_services.PoolService.AddPool(poolSlices);
+		}
 
-			piece.gameObject.SetActive(false);
+		private void DeactivateAsset(GameObject asset)
+		{
+			asset.SetActive(false);
 		}
 
 		private PieceViewController PieceInstantiator(PieceViewController piece)
@@ -230,7 +214,7 @@ namespace Game.Controllers
 
 		private PieceViewController SpawnPiece(UniqueId pieceId)
 		{
-			var piece = _poolPieces.Spawn(pieceId);
+			var piece = _services.PoolService.Spawn<PieceViewController, UniqueId>(pieceId);
 			
 			_spawnedPieces.Add(pieceId, piece);
 			
@@ -239,12 +223,12 @@ namespace Game.Controllers
 
 		private void CleanUpPieces()
 		{
-			foreach (var spawnedPiece in _spawnedPieces)
-			{
-				_poolPieces.Despawn(spawnedPiece.Value);
-			}
+			var pieces = _spawnedPieces.Keys.ToArray();
 			
-			_spawnedPieces.Clear();
+			foreach (var id in pieces)
+			{
+				DespawnPiece(_spawnedPieces[id]);
+			}
 		}
 	}
 }

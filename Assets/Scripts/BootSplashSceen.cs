@@ -16,7 +16,7 @@ namespace Game
 
 		private IEnumerator Start()
 		{
-			var asyncOperation = SceneManager.LoadSceneAsync(Constants.Scenes.MAIN, LoadSceneMode.Additive);
+			var asyncOperation = SceneManager.LoadSceneAsync(Constants.Scenes.Main, LoadSceneMode.Additive);
 
 			if (_audioSource.clip != null)
 			{
@@ -40,7 +40,7 @@ namespace Game
 				yield return null;
 			}
 
-			SceneManager.MergeScenes(SceneManager.GetSceneByName(Constants.Scenes.BOOT), SceneManager.GetSceneByName(Constants.Scenes.MAIN));
+			SceneManager.MergeScenes(SceneManager.GetSceneByName(Constants.Scenes.Boot), SceneManager.GetSceneByName(Constants.Scenes.Main));
 			FindObjectsByType<AudioListener>(FindObjectsSortMode.None).All(audioSource => audioSource.enabled = true);
 			Destroy(gameObject);
 		}

@@ -74,7 +74,7 @@ namespace Game.Logic.Client
 			tile = null;
 			
 			if (row < 0 || column < 0 || 
-			    row >= Constants.Gameplay.BOARD_ROWS || column >= Constants.Gameplay.BOARD_COLUMNS ||
+			    row >= Constants.Gameplay.Board_Rows || column >= Constants.Gameplay.Board_Columns ||
 			    Data.Board[row, column] == null)
 			{
 				return false;
@@ -102,13 +102,13 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public bool IsGameOver()
 		{
-			var tileCount = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
+			var tileCount = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns;
 
 			if(GameDataProvider.PieceDataProvider.Pieces.Count - _pieceDeck.Count < tileCount) return false;
 
-			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			for (var i = 0; i < Constants.Gameplay.Board_Rows; i++)
 			{
-				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				for (var j = 0; j < Constants.Gameplay.Board_Columns; j++)
 				{
 					if (Data.Board[i, j] == null || !Data.Board[i, j].PieceId.IsValid)
 					{
@@ -191,7 +191,7 @@ namespace Game.Logic.Client
 			{
 				var piece = pieceLogic.Pieces[nextTile.PieceId];
 				
-				if (piece.Slices.Count == 0 || piece.Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES)
+				if (piece.Slices.Count == 0 || piece.Slices.Count == Constants.Gameplay.Max_Piece_Slices)
 				{
 					pieceLogic.Pieces.Remove(nextTile.PieceId);
 					CleanUpTile(nextTile.Row, nextTile.Column);
@@ -213,7 +213,7 @@ namespace Game.Logic.Client
 		{
 			PieceDeck.Clear();
 
-			for (var i = 0; i < Constants.Gameplay.MAX_DECK_PIECES; i++)
+			for (var i = 0; i < Constants.Gameplay.Max_Deck_Pieces; i++)
 			{
 				PieceDeck.Add(createPieceFunc().Id);
 			}
@@ -222,15 +222,15 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public void RefillBoard(Func<PieceData> createPieceFunc, IRngLogic rngLogic)
 		{
-			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			for (var i = 0; i < Constants.Gameplay.Board_Rows; i++)
 			{
-				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				for (var j = 0; j < Constants.Gameplay.Board_Columns; j++)
 				{
 					CleanUpTile(i, j);
 				}
 			}
 
-			var totalSpace = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
+			var totalSpace = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns;
 			var totalPieces = rngLogic.Range(totalSpace / 4, totalSpace / 2);
 
 			for (int i = 0, pos = -1; i < totalPieces; i++)
@@ -238,8 +238,8 @@ namespace Game.Logic.Client
 				pos = rngLogic.Range(pos + 1, totalSpace - totalPieces + i);
 
 				SetPieceOnTile(createPieceFunc().Id,
-					pos / Constants.Gameplay.BOARD_COLUMNS,
-					pos % Constants.Gameplay.BOARD_COLUMNS);
+					pos / Constants.Gameplay.Board_Columns,
+					pos % Constants.Gameplay.Board_Columns);
 			}
 		}
 
@@ -275,14 +275,14 @@ namespace Game.Logic.Client
 					if (!centerPiece.IsComplete && nextSlices.Count == 1)
 					{
 						TransferFromCenterTile(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color, out var transferCount);
-						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, transferCount));
+						transferHistory.Add(new PieceTransferData(centerTile.Id, nextTile.Id, centerPiece.Id, nextPiece.Id, color, transferCount));
 						
 						return true;
 					}
 				}
 				else if (TryTransferFromCache(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color))
 				{
-					transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, centerSlices[color]));
+					transferHistory.Add(new PieceTransferData(centerTile.Id, nextTile.Id, centerPiece.Id, nextPiece.Id, color, centerSlices[color]));
 					
 					return true;
 				}

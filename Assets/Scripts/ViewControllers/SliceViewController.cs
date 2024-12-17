@@ -1,4 +1,3 @@
-using System;
 using Game.Data;
 using Game.Utils;
 using System.Collections.Generic;
@@ -20,12 +19,13 @@ namespace Game.ViewControllers
 			{ SliceColor.Yellow, Color.yellow },
 			{ SliceColor.Green, Color.green },
 			{ SliceColor.Blue, Color.blue },
-			{ SliceColor.ColorCount, Color.clear },
+			{ SliceColor.ColorCount, Color.magenta },
 		};
 
 		[SerializeField] private Image _image;
 
 		private SliceColor _sliceColor = SliceColor.ColorCount;
+		private Tweener _rotateTweener;
 
 		public SliceColor SliceColor 
 		{ 
@@ -37,8 +37,6 @@ namespace Game.ViewControllers
 			}
 		}
 
-		public bool IsDisabled => SliceColor == SliceColor.ColorCount;
-
 		protected override void OnEditorValidate()
 		{
 			_image = _image == null ? GetComponent<Image>() : _image;
@@ -49,11 +47,32 @@ namespace Game.ViewControllers
 			SliceColor = color;
 		}
 
-		public void Disable()
+		public void StartTransferAnimation(PieceViewController fromPiece, PieceViewController toPiece, int sliceIndex, float delay)
 		{
-			SliceColor = SliceColor.ColorCount;
+			var duration = Constants.Gameplay.Slice_Transfer_Tween_Time;
+			var indexClosure = sliceIndex;
+			var toPieceClosure = toPiece;
+			var finalRotation = sliceIndex * Constants.Gameplay.Slice_Rotation;
 			
-			gameObject.SetActive(false);
+			_rotateTweener?.Kill();
+			
+			_rotateTweener = RectTransform.DORotate(finalRotation, duration * 0.95f).SetDelay(delay);
+			
+			RectTransform.DOMove(toPieceClosure.RectTransform.position, duration) 
+				.SetDelay(delay)
+				.OnComplete(() => toPieceClosure.AddSlice(indexClosure, this));
+		}
+
+		public void StartRotateAnimation(int sliceIndex)
+		{
+			var duration = Constants.Gameplay.Slice_Rotation_Tween_Time;
+			var rotation = Constants.Gameplay.Slice_Rotation * sliceIndex;
+
+			if (Freya.Mathfs.DistanceSquared(RectTransform.rotation.eulerAngles, rotation) < 0.0001f) return;
+			
+			_rotateTweener?.Kill();
+
+			_rotateTweener = RectTransform.DORotate(rotation, duration);
 		}
 	}
 }

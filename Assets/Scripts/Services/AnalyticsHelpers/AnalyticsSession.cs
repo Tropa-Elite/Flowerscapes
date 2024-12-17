@@ -66,7 +66,7 @@ namespace Game.Services.Analytics
 			// ReSharper disable once RedundantAssignment
 			var source = Application.platform.ToString();
 			
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
 			source = new Uri(Application.absoluteURL).Host;
 #endif
 			

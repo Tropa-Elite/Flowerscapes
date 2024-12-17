@@ -22,8 +22,8 @@ namespace Game.Data
 	{
 		UniqueId Id { get; }
 		IReadOnlyList<SliceColor> Slices { get; }
-		int SlicesFreeSpace => Constants.Gameplay.MAX_PIECE_SLICES - Slices.Count;
-		bool IsFull => Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES;
+		int SlicesFreeSpace => Constants.Gameplay.Max_Piece_Slices - Slices.Count;
+		bool IsFull => Slices.Count == Constants.Gameplay.Max_Piece_Slices;
 		bool IsEmpty => Slices.Count == 0;
 		bool IsComplete => IsFull && Slices.All(s => s == Slices[0]);
 

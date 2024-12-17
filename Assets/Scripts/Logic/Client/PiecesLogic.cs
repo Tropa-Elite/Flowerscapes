@@ -62,7 +62,7 @@ namespace Game.Logic.Client
 
 			slicesCount = maxSlices == -1 ? slicesCount : Math.Min(maxSlices, slicesCount);
 
-			var targetfreeSpace = Constants.Gameplay.MAX_PIECE_SLICES - targetPiece.Slices.Count;
+			var targetfreeSpace = Constants.Gameplay.Max_Piece_Slices - targetPiece.Slices.Count;
 			var transferAmount = Math.Min(targetfreeSpace, slicesCount);
 			var collectedSlices = CollectSlicesFromPiece(sourceId, color, transferAmount);
 
@@ -83,7 +83,7 @@ namespace Game.Logic.Client
 				piece.Slices.Insert(index, color);
 			}
 
-			if(piece.Slices.Count > Constants.Gameplay.MAX_PIECE_SLICES)
+			if(piece.Slices.Count > Constants.Gameplay.Max_Piece_Slices)
 			{
 				throw new LogicException($"Piece {id} was filled too much, a total of {piece.Slices.Count} slices");
 			}

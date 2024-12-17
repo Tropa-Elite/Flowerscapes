@@ -61,7 +61,7 @@ namespace Game.ViewControllers
 			
 			if (TweenPivot)
 			{
-				var duration = Constants.Gameplay.PIECE_PIVOT_TWEEN_TIME;
+				var duration = Constants.Gameplay.Piece_Pivot_Tween_Time;
 				
 				_resetTweener = DOVirtual.Vector2(RectTransform.anchoredPosition, _initialPosition, duration, UpdatePosition);
 			}
