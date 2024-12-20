@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace Game.ViewControllers
 {
 	[RequireComponent(typeof(Image))]
-	public class SliceViewController : ViewControllerBase, IPoolEntitySpawn<SliceColor>
+	public class SliceViewController : ViewControllerBase, IPoolEntitySpawn<SliceColor>, IPoolEntityDespawn
 	{
 		private readonly Dictionary<SliceColor, Color> _colorMap = new()
 		{
@@ -47,6 +47,11 @@ namespace Game.ViewControllers
 			SliceColor = color;
 		}
 
+		public void OnDespawn()
+		{
+			RectTransform.DOKill();
+		}
+
 		public void StartTransferAnimation(PieceViewController fromPiece, PieceViewController toPiece, int sliceIndex, float delay)
 		{
 			var duration = Constants.Gameplay.Slice_Transfer_Tween_Time;
@@ -63,10 +68,10 @@ namespace Game.ViewControllers
 				.OnComplete(() => toPieceClosure.AddSlice(indexClosure, this));
 		}
 
-		public void StartRotateAnimation(int sliceIndex)
+		public void StartRotateAnimation(Vector3 previousSliceRotation)
 		{
 			var duration = Constants.Gameplay.Slice_Rotation_Tween_Time;
-			var rotation = Constants.Gameplay.Slice_Rotation * sliceIndex;
+			var rotation = previousSliceRotation + Constants.Gameplay.Slice_Rotation;
 
 			if (Freya.Mathfs.DistanceSquared(RectTransform.rotation.eulerAngles, rotation) < 0.0001f) return;
 			

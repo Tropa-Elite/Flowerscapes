@@ -184,8 +184,10 @@ namespace Game.Controllers
 			var distance = _deckViewController.RectTransform.rect.width / 4f;
 			var xPos = -distance * 2;
 
-			foreach (var pieceId in _dataProvider.GameplayBoardDataProvider.PieceDeck)
+			for (var i = 0; i < _dataProvider.GameplayBoardDataProvider.PieceDeck.Count; i++)
 			{
+				var pieceId = _dataProvider.GameplayBoardDataProvider.PieceDeck[i];
+				
 				xPos += distance;
 
 				if (!pieceId.IsValid) continue;
@@ -194,6 +196,7 @@ namespace Game.Controllers
 
 				piece.RectTransform.SetParent(_deckViewController.transform);
 				piece.RectTransform.SetAsLastSibling();
+				piece.AnimationSpawn(i * Constants.Gameplay.Piece_Spawn_Delay_Time);
 
 				piece.RectTransform.anchoredPosition = new Vector3(xPos, 0, 0);
 			}
@@ -202,12 +205,18 @@ namespace Game.Controllers
 		private void SpawnBoardPieces() 
 		{
 			var tiles = Object.FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
+			var pieceCounter = 0;
 
 			foreach (var tile in tiles)
 			{
 				if (_dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out var pieceData))
 				{
-					SpawnPiece(pieceData.Id).DraggableView.MoveIntoTransform(tile.transform);
+					var piece = SpawnPiece(pieceData.Id);
+
+					piece.DraggableView.MoveIntoTransform(tile.transform);
+					piece.AnimationSpawn(pieceCounter * Constants.Gameplay.Piece_Spawn_Delay_Time);
+
+					pieceCounter++;
 				}
 			}
 		}

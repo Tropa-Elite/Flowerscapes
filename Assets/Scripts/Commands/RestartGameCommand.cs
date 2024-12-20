@@ -14,8 +14,6 @@ namespace Game.Commands
 		/// <inheritdoc />
 		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
-			var logic = gameLogic.GameplayBoardLogic;
-
 			gameLogic.PiecesLogic.Pieces.Clear();
 			gameLogic.GameplayBoardLogic.RefillBoard(gameLogic.EntityFactoryLogic.CreatePiece, gameLogic.RngLogic);
 			gameLogic.GameplayBoardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);

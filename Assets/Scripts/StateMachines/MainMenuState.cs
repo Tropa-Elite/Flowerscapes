@@ -17,7 +17,7 @@ namespace Game.StateMachines
 	/// </summary>
 	public class MainMenuState
 	{
-		private static readonly IStatechartEvent PLAY_CLICKED_EVENT = new StatechartEvent("Play Button Clicked Event");
+		private static readonly IStatechartEvent _play_Clicked_Event = new StatechartEvent("Play Button Clicked Event");
 
 		private readonly IGameUiService _uiService;
 		private readonly IGameServicesLocator _services;
@@ -45,7 +45,7 @@ namespace Game.StateMachines
 			menuLoading.WaitingFor(LoadMenuAssets).Target(mainScreen);
 
 			mainScreen.OnEnter(OpenMainScreenUi);
-			mainScreen.Event(PLAY_CLICKED_EVENT).Target(final);
+			mainScreen.Event(_play_Clicked_Event).Target(final);
 			mainScreen.OnExit(CloseMainScreenUi);
 
 			final.OnEnter(UnloadAssets);
@@ -66,7 +66,7 @@ namespace Game.StateMachines
 		{
 			var data = new MainMenuPresenter.PresenterData
 			{
-				OnPlayClicked = () => _statechartTrigger(PLAY_CLICKED_EVENT)
+				OnPlayClicked = () => _statechartTrigger(_play_Clicked_Event)
 			};
 			
 			_uiService.OpenUiAsync<MainMenuPresenter, MainMenuPresenter.PresenterData>(data).Forget();

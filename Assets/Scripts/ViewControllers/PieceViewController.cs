@@ -108,9 +108,6 @@ namespace Game.ViewControllers
 		public void OnSpawn(UniqueId id)
 		{
 			var slices = _dataProvider.PieceDataProvider.Pieces[id].Slices;
-			
-			_uniqueId = id;
-			_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(id);
 
 			for (var i = 0; i < Constants.Gameplay.Max_Piece_Slices; i++)
 			{
@@ -126,6 +123,10 @@ namespace Game.ViewControllers
 				slice.RectTransform.SetLocalPositionAndRotation(Vector3.zero, rotation);
 				Slices.Add(slice);
 			}
+			
+			_uniqueId = id;
+			_draggableView.enabled = false;
+			RectTransform.localScale = Vector3.zero;
 		}
 
 		/// <inheritdoc />
@@ -165,26 +166,37 @@ namespace Game.ViewControllers
 			
 			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(_uniqueId) && IsComplete)
 			{
-				AnimateComplete();
+				AnimationComplete();
 				return;
 			}
 			
-			for (var i = 0; i < Slices.Count; i++)
+			for (var i = 1; i < Slices.Count; i++)
 			{
-				Slices[i].StartRotateAnimation(i);
+				Slices[i].StartRotateAnimation(Slices[i - 1].RectTransform.rotation.eulerAngles);
 			}
 		}
 
-		private void AnimateComplete()
+		private void AnimationComplete()
 		{
 			for (var i = 0; i < Slices.Count; i++)
 			{
 				Slices[i].RectTransform.DOKill();
 			}
 			
-			RectTransform.DOPunchScale(Vector3.one * 1.5f, Constants.Gameplay.Piece_Complete_Tween_Time)
-				.SetDelay(Constants.Gameplay.Piece_Complete_Delay_Time)
+			RectTransform.DOScale(Vector3.zero, Constants.Gameplay.Piece_Complete_Tween_Time)
+				.SetEase(Ease.InBack)
 				.OnComplete(() => _controller.DespawnPiece(this));
+		}
+
+		public void AnimationSpawn(float delay)
+		{
+			RectTransform.DOScale(Vector3.one, Constants.Gameplay.Piece_Spawn_Tween_Time)
+				.SetDelay(delay)
+				.SetEase(Ease.OutBack)
+				.OnComplete(() =>
+				{
+					_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(_uniqueId);
+				});
 		}
 
 		private bool TryGetTileFromPosition(Vector3 position, out TileViewController tile)

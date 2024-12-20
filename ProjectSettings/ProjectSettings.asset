@@ -820,7 +820,7 @@ PlayerSettings:
     ReservedCFE: DOTWEEN
     Standalone: LiveScriptReload_Enabled;DOTWEEN
     VisionOS: DOTWEEN
-    WebGL: DOTWEEN
+    WebGL: DOTWEEN;LiveScriptReload_Enabled
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
     iPhone: DOTWEEN
