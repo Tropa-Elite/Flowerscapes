@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GameAnalyticsSDK;
 using GameLovers;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -182,6 +183,14 @@ namespace Game.Services.Analytics
 			loginData.Add("user_id", id);
 			
 			LogEvent(AnalyticsEvents.PlayerLogin, loginData);
+		}
+
+		/// <summary>
+		/// Logs the player age in aggregated analytics for player segmentation
+		/// </summary>
+		public void PlayerAge(int age)
+		{
+			LogEvent(AnalyticsEvents.PlayerLogin, new Dictionary<string, object> { {"age", age } });
 		}
 
 #if UNITY_ANDROID

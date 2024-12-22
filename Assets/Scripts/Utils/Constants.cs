@@ -26,6 +26,17 @@ namespace Game.Utils
 		}
 
 		/// <summary>
+		/// Constants related to the game's settings
+		/// </summary>
+		public static class Settings
+		{
+			public const int Age_Max_Value = 75;
+			public const int Age_Min_Value = 13;
+			public const string Policy_Link = "https://google.com";
+			public const string Terms_Link = "https://google.com";
+		}
+
+		/// <summary>
 		/// Constants related to the game's gameplay mechanics.
 		/// </summary>
 		public static class Gameplay
@@ -35,14 +46,14 @@ namespace Game.Utils
 			public const int Max_Piece_Slices = 6;
 			public const int Max_Deck_Pieces = 3;
 			public const float Piece_Desktop_Speed = 1f;
-			public const float Piece_Mobile_Speed = 3f;
+			public const float Piece_Mobile_Speed = 1.5f;
 			public const float Piece_Pivot_Tween_Time = 0.4f;
-			public const float Slice_Rotation_Delay_Time = 0.1f;
+			public const float Piece_Spawn_Delay_Time = 0.1f;
+			public const float Piece_Spawn_Tween_Time = 0.3f;
+			public const float Piece_Complete_Tween_Time = 0.3f;
 			public const float Slice_Rotation_Tween_Time = 0.2f;
 			public const float Slice_Transfer_Delay_Time = 0.2f;
 			public const float Slice_Transfer_Tween_Time = 0.4f;
-			public const float Piece_Complete_Delay_Time = 0.1f;
-			public const float Piece_Complete_Tween_Time = 0.4f;
 			public static readonly Vector3 Slice_Rotation = new Vector3(0, 0, 60);
 			public static readonly Vector2 Piece_Mobile_Offset = new Vector2(0f, 1f); 
 			public static readonly Vector2 Piece_Desktop_Offset = new Vector2(0f, 0.2f);

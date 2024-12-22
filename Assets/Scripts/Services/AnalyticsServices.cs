@@ -1,6 +1,8 @@
 ﻿using System;
+using Game.Messages;
 using Game.Services.Analytics;
 using GameAnalyticsSDK;
+using GameLovers.Services;
 using UnityEngine.Device;
 
 namespace Game.Services
@@ -17,6 +19,7 @@ namespace Game.Services
 		public static readonly string LoadingStarted = "loading_started";
 		public static readonly string LoadingCompleted = "loading_completed";
 		public static readonly string PlayerLogin = "player_login";
+		public static readonly string PlayerAge = "player_age";
 		public static readonly string ScreenView = "screen_view";
 		public static readonly string ButtonAction = "button_action";
 		public static readonly string MainMenuEnter = "main_menu_enter";
@@ -56,13 +59,15 @@ namespace Game.Services
 		/// <inheritdoc />
 		public AnalyticsMainMenu MainMenuCalls { get; }
 
-		public AnalyticsService()
+		public AnalyticsService(IMessageBrokerService messageBrokerService)
 		{
 			SessionCalls = new AnalyticsSession(this);
 			EconomyCalls = new AnalyticsEconomy(this);
 			ErrorsCalls = new AnalyticsErrors(this);
 			UiCalls = new AnalyticsUI(this);
 			MainMenuCalls = new AnalyticsMainMenu(this);
+			
+			messageBrokerService.Subscribe<ApplicationComplianceAcceptedMessage>(OnApplicationComplianceAcceptedMessage);
 		}
 
 		/// <inheritdoc />
@@ -73,6 +78,11 @@ namespace Game.Services
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
 			SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
+		}
+
+		private void OnApplicationComplianceAcceptedMessage(ApplicationComplianceAcceptedMessage message)
+		{
+			SessionCalls.PlayerAge(message.Age);
 		}
 	}
 }
