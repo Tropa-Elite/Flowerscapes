@@ -137,5 +137,7 @@ quantum_server/packages
 EditorUserSettings.*
 *.gz
 **/AOTGenerationConfig.asset
-**/Assets/Plugins/LiveScriptReload
-**/Assets/Plugins/LiveScriptReload.meta
+**/Assets/Libs/LiveScriptReload
+**/Assets/Libs/LiveScriptReload.meta
+**/Assets/Libs/StompyRobot
+**/Assets/Libs/StompyRobot.meta

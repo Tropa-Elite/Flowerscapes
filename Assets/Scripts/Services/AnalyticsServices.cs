@@ -73,7 +73,6 @@ namespace Game.Services
 		/// <inheritdoc />
 		public void Init()
 		{
-			// TODO: request data collection permission (use ask age screen for example)
 			GameAnalytics.Initialize();
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
