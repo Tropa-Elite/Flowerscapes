@@ -27,6 +27,7 @@ namespace Game.Data
 		bool IsEmpty => Slices.Count == 0;
 		bool IsComplete => IsFull && Slices.All(s => s == Slices[0]);
 
+		int GetSlicesCount(SliceColor color);
 		Dictionary<SliceColor, int> GetSlicesColors();
 	}
 
@@ -41,6 +42,19 @@ namespace Game.Data
 
 		/// <inheritdoc />
 		IReadOnlyList<SliceColor> IPieceData.Slices => Slices;
+
+		/// <inheritdoc />
+		public int GetSlicesCount(SliceColor color)
+		{
+			var count = 0;
+
+			foreach (var slice in Slices)
+			{
+				count += slice == color ? 1 : 0;
+			}
+
+			return count;
+		}
 
 		/// <inheritdoc />
 		public Dictionary<SliceColor, int> GetSlicesColors()

@@ -1,3 +1,4 @@
+using System;
 using Game.Data;
 using Game.Utils;
 using System.Collections.Generic;
@@ -52,12 +53,10 @@ namespace Game.ViewControllers
 			RectTransform.DOKill();
 		}
 
-		public void StartTransferAnimation(PieceViewController fromPiece, PieceViewController toPiece, int sliceIndex, float delay)
+		public void StartTransferAnimation(PieceViewController toPiece, Vector3 finalRotation, int sliceIndex,float delay)
 		{
 			var duration = Constants.Gameplay.Slice_Transfer_Tween_Time;
-			var indexClosure = sliceIndex;
 			var toPieceClosure = toPiece;
-			var finalRotation = sliceIndex * Constants.Gameplay.Slice_Rotation;
 			
 			_rotateTweener?.Kill();
 			
@@ -65,19 +64,20 @@ namespace Game.ViewControllers
 			
 			RectTransform.DOMove(toPieceClosure.RectTransform.position, duration) 
 				.SetDelay(delay)
-				.OnComplete(() => toPieceClosure.AddSlice(indexClosure, this));
+				.OnComplete(() => toPieceClosure.AddSlice(this));
 		}
 
-		public void StartRotateAnimation(Vector3 previousSliceRotation)
+		public Tweener StartRotateAnimation(Vector3 newRotation)
 		{
 			var duration = Constants.Gameplay.Slice_Rotation_Tween_Time;
-			var rotation = previousSliceRotation + Constants.Gameplay.Slice_Rotation;
 
-			if (Freya.Mathfs.DistanceSquared(RectTransform.rotation.eulerAngles, rotation) < 0.0001f) return;
+			if (Freya.Mathfs.DistanceSquared(RectTransform.rotation.eulerAngles, newRotation) < 0.0001f) return null;
 			
 			_rotateTweener?.Kill();
 
-			_rotateTweener = RectTransform.DORotate(rotation, duration);
+			_rotateTweener = RectTransform.DORotate(newRotation, duration);
+			
+			return _rotateTweener;
 		}
 	}
 }

@@ -10,11 +10,13 @@ using UnityEngine;
 
 public partial class SROptions
 {
+#if !UNITY_EDITOR
 	[Category("Data")]
 	public void ResetAllData()
 	{
 		PlayerPrefs.DeleteAll();
 	}
+#endif
 	
 	[Category("Cheats")]
 	public void CheatInitBoard()
@@ -29,7 +31,7 @@ public partial class SROptions
 	{
 		gameLogic.PiecesLogic.Pieces.GetOriginValue(gameLogic.GameplayBoardLogic.PieceDeck[0]).Slices = new List<SliceColor> 
 		{ 
-			SliceColor.Green, SliceColor.Green, SliceColor.White, SliceColor.White
+			SliceColor.Blue, SliceColor.Blue, SliceColor.White, SliceColor.White
 		};
 
 		if (gameLogic.GameplayBoardLogic.TryGetPieceFromTile(0, 0, out var piece1))
@@ -49,9 +51,9 @@ public partial class SROptions
 		}
 		var piece = gameLogic.EntityFactoryLogic.CreatePiece();
 		gameLogic.GameplayBoardLogic.SetPieceOnTile(piece.Id, 0, 0);
-		piece.Slices = new List<SliceColor> { SliceColor.White, SliceColor.White };
+		piece.Slices = new List<SliceColor> { SliceColor.Blue, SliceColor.Blue };
 		piece = gameLogic.EntityFactoryLogic.CreatePiece();
 		gameLogic.GameplayBoardLogic.SetPieceOnTile(piece.Id, 0, 2);
-		piece.Slices = new List<SliceColor> { SliceColor.White, SliceColor.White };
+		piece.Slices = new List<SliceColor> { SliceColor.Blue, SliceColor.Blue };
 	}
 }

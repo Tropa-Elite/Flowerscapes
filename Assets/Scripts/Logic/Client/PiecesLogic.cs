@@ -51,20 +51,11 @@ namespace Game.Logic.Client
 
 		public int TransferSlices(UniqueId sourceId, UniqueId targetId, SliceColor color, int maxSlices = -1)
 		{
-			var sourcePiece = _pieces[sourceId];
-			var targetPiece = _pieces[targetId];
-			var slicesColors = sourcePiece.GetSlicesColors();
+			var targetFreeSpace = Constants.Gameplay.Max_Piece_Slices - _pieces[targetId].Slices.Count;
+			var maxTransferAmount = maxSlices == -1 ? targetFreeSpace : Math.Min(targetFreeSpace, maxSlices);
+			var collectedSlices = CollectSlicesFromPiece(sourceId, color, maxTransferAmount);
 
-			if (!slicesColors.TryGetValue(color, out var slicesCount))
-			{
-				return 0;
-			}
-
-			slicesCount = maxSlices == -1 ? slicesCount : Math.Min(maxSlices, slicesCount);
-
-			var targetfreeSpace = Constants.Gameplay.Max_Piece_Slices - targetPiece.Slices.Count;
-			var transferAmount = Math.Min(targetfreeSpace, slicesCount);
-			var collectedSlices = CollectSlicesFromPiece(sourceId, color, transferAmount);
+			if (collectedSlices == 0) return 0;
 
 			FillPiece(targetId, color, collectedSlices);
 
@@ -75,13 +66,16 @@ namespace Game.Logic.Client
 		{
 			var piece = _pieces.GetOriginValue(id);
 			var index = piece.Slices.IndexOf(color);
+			var collection = new SliceColor[amount];
 
 			index = index == -1 ? piece.Slices.Count - 1 : index;
 
 			for (int i = 0; i < amount; i++)
 			{
-				piece.Slices.Insert(index, color);
+				collection[i] = color;
 			}
+			
+			piece.Slices.InsertRange(index, collection);
 
 			if(piece.Slices.Count > Constants.Gameplay.Max_Piece_Slices)
 			{
@@ -89,12 +83,12 @@ namespace Game.Logic.Client
 			}
 		}
 
-		private int CollectSlicesFromPiece(UniqueId pieceId, SliceColor color, int slices)
+		private int CollectSlicesFromPiece(UniqueId pieceId, SliceColor color, int maxSlices)
 		{
 			var count = 0;
 			var piece = _pieces.GetOriginValue(pieceId);
 
-			for (int i = piece.Slices.Count - 1; i > -1 && count < slices; i--)
+			for (int i = piece.Slices.Count - 1; i > -1 && count < maxSlices; i--)
 			{
 				if (piece.Slices[i] != color) continue;
 

@@ -60,6 +60,28 @@ namespace Game.ViewControllers
 			_controller = controller;
 		}
 
+		public int GetNewSliceIndex(SliceColor color, out Vector3 rotation)
+		{
+			var index = Slices.FindLastIndex(s => s.SliceColor == color);
+
+			index = index < 0 ? Slices.Count : index + 1;
+			rotation = Slices[index - 1].RectTransform.rotation.eulerAngles + Constants.Gameplay.Slice_Rotation;
+			
+			return index;
+		}
+
+		public int GetSlicesCount(SliceColor color)
+		{
+			var count = 0;
+			
+			foreach (var slice in Slices)
+			{
+				count += slice.SliceColor == color ? 1 : 0;
+			}
+
+			return count;
+		}
+
 		/// <inheritdoc />
 		public void OnPointerUp(PointerEventData eventData)
 		{
@@ -122,6 +144,8 @@ namespace Game.ViewControllers
 				slice.RectTransform.SetParent(transform);
 				slice.RectTransform.SetLocalPositionAndRotation(Vector3.zero, rotation);
 				Slices.Add(slice);
+				
+				slice.RectTransform.localScale = Vector3.one;
 			}
 			
 			_uniqueId = id;
@@ -139,24 +163,31 @@ namespace Game.ViewControllers
 				_services.PoolService.Despawn(slice);
 			}
 			
+			RectTransform.DOKill();
 			Slices.Clear();
 		}
-
-		public int GetNextSliceIndex(SliceColor color)
-		{
-			var index = Slices.FindLastIndex(s => s.SliceColor == color);
-
-			return index < 0 ? Slices.Count : index + 1;
-		}
 		
-		public void AddSlice(int index, SliceViewController slice)
+		public void AddSlice(SliceViewController slice)
 		{
+			var index = GetNewSliceIndex(slice.SliceColor, out var rotation);
+			var tweener = slice.StartRotateAnimation(rotation);
+			
 			slice.RectTransform.SetParent(transform);
 			Slices.Insert(index, slice);
-			AdjustPieceAnimation(0);
+			
+			if (!IsComplete) return;
+
+			if (tweener.IsValid())
+			{
+				tweener.OnComplete(AnimationComplete);
+			}
+			else
+			{
+				AnimationComplete();
+			}
 		}
 
-		public void AdjustPieceAnimation(float delay)
+		public void AdjustRemainingSlicesAnimation(float delay)
 		{
 			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(_uniqueId) && IsEmpty)
 			{
@@ -164,15 +195,11 @@ namespace Game.ViewControllers
 				return;
 			}
 			
-			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(_uniqueId) && IsComplete)
-			{
-				AnimationComplete();
-				return;
-			}
-			
 			for (var i = 1; i < Slices.Count; i++)
 			{
-				Slices[i].StartRotateAnimation(Slices[i - 1].RectTransform.rotation.eulerAngles);
+				var newRotation = Slices[i - 1].RectTransform.rotation.eulerAngles + Constants.Gameplay.Slice_Rotation;
+				
+				Slices[i].StartRotateAnimation(newRotation);
 			}
 		}
 

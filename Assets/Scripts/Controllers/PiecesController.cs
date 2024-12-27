@@ -112,15 +112,34 @@ namespace Game.Controllers
 			{
 				var sourcePiece = _spawnedPieces[transfer.OriginPieceId];
 				var targetPiece = _spawnedPieces[transfer.TargetPieceId];
-
+				
+				if(sourcePiece.GetSlicesCount(transfer.SliceColor) < transfer.SlicesAmount)
+				{
+					TransferSlicesDelay(sourcePiece, targetPiece, transfer.SliceColor, transfer.SlicesAmount).Forget();
+					continue;
+				}
+				
 				TransferSlices(sourcePiece, targetPiece, transfer.SliceColor, transfer.SlicesAmount);
 			}
+		}
+
+		private async UniTaskVoid TransferSlicesDelay(PieceViewController sourcePiece, PieceViewController targetPiece,
+			SliceColor color, int amount)
+		{
+			await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Tween_Time * 1000));
+
+			while (sourcePiece.GetSlicesCount(color) < amount)
+			{
+				await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Delay_Time * 1000));
+			}
+			
+			TransferSlices(sourcePiece, targetPiece, color, amount);
 		}
 
 		private void TransferSlices(PieceViewController sourcePiece, PieceViewController targetPiece, SliceColor color, int amount)
 		{
 			var parent = _services.PoolService.GetPool<SliceViewController>().SampleEntity.transform.parent;
-			var targetStartIndex = targetPiece.GetNextSliceIndex(color);
+			var targetStartIndex = targetPiece.GetNewSliceIndex(color, out var startRotation);
 			var sourceStartIndex = sourcePiece.Slices.FindIndex(s => s.SliceColor == color);
 			
 			for (var i = 0; i < amount; i++)
@@ -128,13 +147,14 @@ namespace Game.Controllers
 				var sourceIndex = sourceStartIndex + i;
 				var targetIndex = targetStartIndex + i;
 				var delay = i * Constants.Gameplay.Slice_Transfer_Delay_Time;
+				var rotation = startRotation + Constants.Gameplay.Slice_Rotation * i;
 				
 				sourcePiece.Slices[sourceIndex].RectTransform.SetParent(parent);
-				sourcePiece.Slices[sourceIndex].StartTransferAnimation(sourcePiece, targetPiece, targetIndex, delay);
+				sourcePiece.Slices[sourceIndex].StartTransferAnimation(targetPiece, rotation, targetIndex, delay);
 			}
 			
 			sourcePiece.Slices.RemoveRange(sourceStartIndex, amount);
-			sourcePiece.AdjustPieceAnimation(amount * Constants.Gameplay.Slice_Transfer_Delay_Time);
+			sourcePiece.AdjustRemainingSlicesAnimation(amount * Constants.Gameplay.Slice_Transfer_Delay_Time);
 		}
 
 		private async UniTask CreatePools()
@@ -171,8 +191,9 @@ namespace Game.Controllers
 		private Transform CreatePoolTransform()
 		{
 			var poolTransform = new GameObject("PiecesController Pool").GetComponent<Transform>();
+			var canvas = _deckViewController.GetComponentInParent<Canvas>();
 
-			poolTransform.SetParent(Object.FindFirstObjectByType<Canvas>().transform);
+			poolTransform.SetParent(canvas.transform);
 			poolTransform.localPosition = Vector3.zero;
 			poolTransform.localScale = Vector3.one;
 
