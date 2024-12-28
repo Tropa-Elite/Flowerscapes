@@ -9,7 +9,7 @@ namespace Game.ViewControllers
 	{
 		public float DragSpeed = 1f;
 		public bool TweenPivot = true;
-		public Vector2 Offset = Vector2.up;
+		public Vector2 PivotOffset = Vector2.up;
 		
 		private Tweener _resetTweener;
 		private Vector2 _initialPivot;
@@ -37,8 +37,8 @@ namespace Game.ViewControllers
 			RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvasTransform,
 				eventData.position, null, out var position);
 			
-			RectTransform.pivot = _initialPivot - Offset;
-			RectTransform.anchoredPosition = position + Offset;
+			RectTransform.pivot = _initialPivot - PivotOffset;
+			RectTransform.anchoredPosition = position;
 			_previousPosition = RectTransform.anchoredPosition;
 		}
 

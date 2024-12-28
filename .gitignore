@@ -119,6 +119,8 @@ GvhProjectSettings.xml
 **/AddressableAssetsData/iOS.meta
 **/AddressableAssetsData/Android/
 **/AddressableAssetsData/Android.meta
+**/AddressableAssetsData/WebGL/
+**/AddressableAssetsData/WebGL.meta
 **/AddressableAssetsData/link.xml
 **/AddressableAssetsData/link.xml.meta
 

@@ -19,8 +19,6 @@ namespace Game.ViewControllers
 		IPoolEntitySpawn<UniqueId>, IPoolEntityDespawn
 	{
 		[SerializeField] private DraggableViewController _draggableView;
-		[HideInInspector]
-		[SerializeField] private GraphicRaycaster _canvasRaycaster;
 
 		private IGameServicesLocator _services;
 		private IGameDataProviderLocator _dataProvider;
@@ -46,8 +44,7 @@ namespace Game.ViewControllers
 			_services = MainInstaller.Resolve<IGameServicesLocator>();
 			_dataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
 			_draggableView.DragSpeed = isMobile ? Constants.Gameplay.Piece_Mobile_Speed : Constants.Gameplay.Piece_Desktop_Speed;
-			_draggableView.Offset = isMobile ? Constants.Gameplay.Piece_Mobile_Offset : Constants.Gameplay.Piece_Desktop_Offset;
-			_canvasRaycaster = _canvasRaycaster != null ? _canvasRaycaster : GetComponentInParent<GraphicRaycaster>();
+			_draggableView.PivotOffset = isMobile ? Constants.Gameplay.Draggable_Mobile_Pivot_Offset : Constants.Gameplay.Draggable_Desktop_Pivot_Offset;
 		}
 
 		private void OnDestroy()
@@ -90,18 +87,18 @@ namespace Game.ViewControllers
 				return;
 			}
 
-			if (!TryGetTileFromPosition(RectTransform.position, out var tile) ||
-			    _dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out _))
+			var tile = _controller.OnPieceDrop(Id, RectTransform.TransformPoint(RectTransform.rect.center));
+			
+			if (tile.IsValid())
+			{
+				_draggableView.enabled = false;
+
+				_draggableView.MoveIntoTransform(tile.transform);
+			}
+			else
 			{
 				_draggableView.ResetDraggable();
-				_controller.OnPieceDrop(Id, null);
-				return;
 			}
-
-			_draggableView.enabled = false;
-
-			_draggableView.MoveIntoTransform(tile.transform);
-			_controller.OnPieceDrop(Id, tile);
 		}
 
 		/// <inheritdoc />
@@ -115,15 +112,8 @@ namespace Game.ViewControllers
 			{
 				return;
 			}
-
-			if (TryGetTileFromPosition(RectTransform.position, out var tile))
-			{
-				_controller.OnPieceDrag(tile);
-			}
-			else
-			{
-				_controller.OnPieceDrag(null);
-			}
+			
+			_controller.OnPieceDrag(Id, RectTransform.TransformPoint(RectTransform.rect.center));
 		}
 
 		/// <inheritdoc />
@@ -224,37 +214,6 @@ namespace Game.ViewControllers
 				{
 					_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(_uniqueId);
 				});
-		}
-
-		private bool TryGetTileFromPosition(Vector3 position, out TileViewController tile)
-		{
-			tile = null;
-			
-			if (!_canvasRaycaster.RaycastPoint(position, out var hits))
-			{
-				return false;
-			}
-
-			var hit = hits.Find(x => x.gameObject.HasComponent<TileViewController>());
-
-			// Is not allowed to put a piece on a tile with already a piece in it
-			if (!hit.isValid)
-			{
-				return false;
-			}
-			
-			var hitTile = hit.gameObject.GetComponent<TileViewController>();
-			var limitDistance = hitTile.RectTransform.TransformVector(hitTile.RectTransform.rect.size).x * 3f / 5f;
-
-			// Avoid flickering the tile selection in the corners
-			if (Freya.Mathfs.DistanceSquared(hitTile.RectTransform.position, position) > limitDistance * limitDistance)
-			{
-				return false;
-			}
-
-			tile = hitTile;
-
-			return true;
 		}
 	}
 }

@@ -30,10 +30,11 @@ namespace Game.Utils
 		/// </summary>
 		public static class Settings
 		{
+			public const bool IsComplianceEnabled = false;
 			public const int Age_Max_Value = 75;
 			public const int Age_Min_Value = 13;
-			public const string Policy_Link = "https://google.com";
-			public const string Terms_Link = "https://google.com";
+			public const string Policy_Link = "https://www.termsfeed.com/live/0bc5d145-ec29-484d-ba2d-b99eeba1e3fd";
+			public const string Terms_Link = "https://www.termsfeed.com/live/44fc48bf-77f7-4720-9bf4-4409391295f5";
 		}
 
 		/// <summary>
@@ -55,8 +56,8 @@ namespace Game.Utils
 			public const float Slice_Transfer_Delay_Time = 0.2f;
 			public const float Slice_Transfer_Tween_Time = 0.4f;
 			public static readonly Vector3 Slice_Rotation = new Vector3(0, 0, 60);
-			public static readonly Vector2 Piece_Mobile_Offset = new Vector2(0f, 1f); 
-			public static readonly Vector2 Piece_Desktop_Offset = new Vector2(0f, 0.2f);
+			public static readonly Vector2 Draggable_Desktop_Pivot_Offset = new Vector2(0f, 0.2f);
+			public static readonly Vector2 Draggable_Mobile_Pivot_Offset = new Vector2(0f, 1f); 
 			public static readonly Color Tile_Overing_Color = Color.clear;
 		}
 	}

@@ -14,6 +14,7 @@ using GameLovers.AssetsImporter;
 using Game.Configs;
 using Game.Messages;
 using Game.Presenters;
+using Game.Utils;
 
 namespace Game.StateMachines
 {
@@ -111,7 +112,7 @@ namespace Game.StateMachines
 
 		private bool IsComplianceAccepted()
 		{
-			return _gameLogic.AppLogic.IsComplianceAccepted;
+			return _gameLogic.AppLogic.IsComplianceAccepted || !Constants.Settings.IsComplianceEnabled;
 		}
 
 		private async UniTask LoadConfigs()

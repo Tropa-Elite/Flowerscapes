@@ -2,6 +2,7 @@
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Freya;
 using Game.Ids;
 using Game.Logic;
 using Game.Messages;
@@ -11,6 +12,7 @@ using Game.ViewControllers;
 using GameLovers.Services;
 using Game.Commands;
 using Game.Data;
+using GameLovers;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -18,8 +20,8 @@ namespace Game.Controllers
 {
 	public interface IPiecesController
 	{
-		void OnPieceDrop(UniqueId piece, TileViewController tile);
-		void OnPieceDrag(TileViewController tileOvering);
+		TileViewController OnPieceDrop(UniqueId piece, Vector2 screenPosition);
+		void OnPieceDrag(UniqueId piece, Vector2 screenPosition);
 		void DespawnPiece(PieceViewController piece);
 	}
 	
@@ -63,22 +65,28 @@ namespace Game.Controllers
 			_deckViewController = null;
 		}
 
-		public void OnPieceDrop(UniqueId pieceId, TileViewController tile)
-		{
-			_overingTile?.SetOveringState(false);
-
-			// This means that it dropped over a tile
-			if (tile == null)
-			{
-				return;
-			}
-			
-			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tile.Row, tile.Column));
-		}
-
-		public void OnPieceDrag(TileViewController tileOvering)
+		public TileViewController OnPieceDrop(UniqueId pieceId, Vector2 screenPosition)
 		{
 			var dataProvider = _dataProvider.GameplayBoardDataProvider;
+			var tileOvering = GetTileFromPosition(screenPosition);
+			
+			_overingTile?.SetOveringState(false);
+
+			// This means that it didn't drop over an empty tile or there is already a piece in it
+			if (tileOvering == null || dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
+			{
+				return null;
+			}
+			
+			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tileOvering.Row, tileOvering.Column));
+
+			return tileOvering;
+		}
+
+		public void OnPieceDrag(UniqueId pieceId, Vector2 screenPosition)
+		{
+			var dataProvider = _dataProvider.GameplayBoardDataProvider;
+			var tileOvering = GetTileFromPosition(screenPosition);
 			
 			// This means that there is already a piece where the player wants to drop it 
 			if (tileOvering != null && dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
@@ -259,6 +267,34 @@ namespace Game.Controllers
 			{
 				DespawnPiece(_spawnedPieces[id]);
 			}
+		}
+
+		private TileViewController GetTileFromPosition(Vector2 screenPosition)
+		{
+			if (!_deckViewController.CanvasRaycaster.RaycastPoint(screenPosition, out var hits))
+			{
+				return null;
+			}
+
+			var hit = hits.Find(x => x.gameObject.HasComponent<TileViewController>());
+
+			// Is not allowed to put a piece on a tile with already a piece in it
+			if (!hit.isValid)
+			{
+				return null;
+			}
+			
+			var hitTile = hit.gameObject.GetComponent<TileViewController>();
+			var limitDistance = hitTile.RectTransform.TransformVector(hitTile.RectTransform.rect.size).x * 3f / 5f;
+			var hitTilePosition = (Vector2) hitTile.transform.position;
+
+			// Avoid flickering the tile selection in the corners
+			if (Mathfs.DistanceSquared(hitTilePosition, screenPosition) > limitDistance * limitDistance)
+			{
+				return null;
+			}
+			
+			return hitTile;
 		}
 	}
 }
