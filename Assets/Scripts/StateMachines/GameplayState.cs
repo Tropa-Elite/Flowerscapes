@@ -118,18 +118,18 @@ namespace Game.StateMachines
 
 		private void OpenPauseScreenUi()
 		{
-			var data = new PauseScreenPresenter.PresenterData
+			var data = new PausePopUpPresenter.PresenterData
 			{
 				OnReturnMenuClicked = () => _statechartTrigger(MENU_CLICKED_EVENT),
 				OnCloseClicked = () => _statechartTrigger(CLOSE_CLICKED_EVENT)
 			};
 			
-			_uiService.OpenUiAsync<PauseScreenPresenter, PauseScreenPresenter.PresenterData>(data).Forget();
+			_uiService.OpenUiAsync<PausePopUpPresenter, PausePopUpPresenter.PresenterData>(data).Forget();
 		}
 
 		private void ClosePauseScreenUi()
 		{
-			_uiService.CloseUi<PauseScreenPresenter>();
+			_uiService.CloseUi<PausePopUpPresenter>();
 		}
 
 		private void OpenGameplayUi()
