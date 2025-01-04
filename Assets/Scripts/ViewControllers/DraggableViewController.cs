@@ -53,11 +53,15 @@ namespace Game.ViewControllers
 			}
 		}
 
-		public void ResetDraggable()
+		public void ResetPivot()
+		{
+			RectTransform.pivot = _initialPivot;
+		}
+
+		public void ResetPosition()
 		{
 			RectTransform.SetParent(_initialParent);
-			
-			RectTransform.pivot = _initialPivot;
+			ResetPivot();
 			
 			if (TweenPivot)
 			{
@@ -69,15 +73,6 @@ namespace Game.ViewControllers
 			{
 				RectTransform.anchoredPosition = _initialPosition;
 			}
-		}
-
-		public void MoveIntoTransform(Transform newTransform)
-		{
-			RectTransform.SetParent(newTransform);
-			RectTransform.SetAsLastSibling();
-
-			RectTransform.pivot = _initialPivot;
-			RectTransform.anchoredPosition = Vector3.zero;
 		}
 
 		private void UpdatePosition(Vector2 value)

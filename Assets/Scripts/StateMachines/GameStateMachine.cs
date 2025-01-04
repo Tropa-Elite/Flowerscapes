@@ -1,9 +1,6 @@
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
-using Game.Logic;
 using Game.Services;
-using System;
-using TMPro;
 
 namespace Game.StateMachines
 {

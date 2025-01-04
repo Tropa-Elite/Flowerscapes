@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using Game.Commands;
 using Game.Controllers;
 using Game.Data;
 using Game.Ids;
@@ -87,17 +88,18 @@ namespace Game.ViewControllers
 				return;
 			}
 
-			var tile = _controller.OnPieceDrop(Id, RectTransform.TransformPoint(RectTransform.rect.center));
+			var tile = _controller.OnPieceDrop(RectTransform.TransformPoint(RectTransform.rect.center));
 			
 			if (tile.IsValid())
 			{
 				_draggableView.enabled = false;
-
-				_draggableView.MoveIntoTransform(tile.transform);
+				
+				MoveIntoTile(tile);
+				_services.CommandService.ExecuteCommand(new PieceDropCommand(Id, tile.Row, tile.Column));
 			}
 			else
 			{
-				_draggableView.ResetDraggable();
+				_draggableView.ResetPosition();
 			}
 		}
 
@@ -113,7 +115,7 @@ namespace Game.ViewControllers
 				return;
 			}
 			
-			_controller.OnPieceDrag(Id, RectTransform.TransformPoint(RectTransform.rect.center));
+			_controller.OnPieceDrag(RectTransform.TransformPoint(RectTransform.rect.center));
 		}
 
 		/// <inheritdoc />
@@ -156,6 +158,15 @@ namespace Game.ViewControllers
 			RectTransform.DOKill();
 			Slices.Clear();
 		}
+
+		public void MoveIntoTile(TileViewController tile)
+		{
+			RectTransform.SetParent(tile.transform);
+			RectTransform.SetAsLastSibling();
+			DraggableView.ResetPivot();
+
+			RectTransform.anchoredPosition = Vector3.zero;
+		}
 		
 		public void AddSlice(SliceViewController slice)
 		{
@@ -163,9 +174,10 @@ namespace Game.ViewControllers
 			var tweener = slice.StartRotateAnimation(rotation);
 			
 			slice.RectTransform.SetParent(transform);
+			slice.RectTransform.SetLocalPositionAndRotation(Vector3.zero, slice.RectTransform.localRotation);
 			Slices.Insert(index, slice);
 			
-			if (!IsComplete) return;
+			if (index < Constants.Gameplay.Max_Piece_Slices - 1 || !IsComplete) return;
 
 			if (tweener.IsValid())
 			{

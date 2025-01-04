@@ -31,7 +31,7 @@ public partial class SROptions
 	{
 		gameLogic.PiecesLogic.Pieces.GetOriginValue(gameLogic.GameplayBoardLogic.PieceDeck[0]).Slices = new List<SliceColor> 
 		{ 
-			SliceColor.Blue, SliceColor.Blue, SliceColor.White, SliceColor.White
+			SliceColor.Blue, SliceColor.Blue, SliceColor.Blue
 		};
 
 		if (gameLogic.GameplayBoardLogic.TryGetPieceFromTile(0, 0, out var piece1))

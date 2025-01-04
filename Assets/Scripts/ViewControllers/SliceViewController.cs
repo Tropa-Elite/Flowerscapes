@@ -53,16 +53,16 @@ namespace Game.ViewControllers
 			RectTransform.DOKill();
 		}
 
-		public void StartTransferAnimation(PieceViewController toPiece, Vector3 finalRotation, int sliceIndex,float delay)
+		public void StartTransferAnimation(PieceViewController toPiece, Vector3 finalRotation, float delay)
 		{
 			var duration = Constants.Gameplay.Slice_Transfer_Tween_Time;
 			var toPieceClosure = toPiece;
 			
 			_rotateTweener?.Kill();
 			
-			_rotateTweener = RectTransform.DORotate(finalRotation, duration * 0.95f).SetDelay(delay);
+			_rotateTweener = RectTransform.DOLocalRotate(finalRotation, duration * 0.95f).SetDelay(delay);
 			
-			RectTransform.DOMove(toPieceClosure.RectTransform.position, duration) 
+			RectTransform.DOMove(toPiece.RectTransform.position, duration) 
 				.SetDelay(delay)
 				.OnComplete(() => toPieceClosure.AddSlice(this));
 		}
@@ -75,7 +75,7 @@ namespace Game.ViewControllers
 			
 			_rotateTweener?.Kill();
 
-			_rotateTweener = RectTransform.DORotate(newRotation, duration);
+			_rotateTweener = RectTransform.DOLocalRotate(newRotation, duration);
 			
 			return _rotateTweener;
 		}

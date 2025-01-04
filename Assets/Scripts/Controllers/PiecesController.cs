@@ -20,8 +20,8 @@ namespace Game.Controllers
 {
 	public interface IPiecesController
 	{
-		TileViewController OnPieceDrop(UniqueId piece, Vector2 screenPosition);
-		void OnPieceDrag(UniqueId piece, Vector2 screenPosition);
+		TileViewController OnPieceDrop(Vector2 screenPosition);
+		void OnPieceDrag(Vector2 screenPosition);
 		void DespawnPiece(PieceViewController piece);
 	}
 	
@@ -65,7 +65,7 @@ namespace Game.Controllers
 			_deckViewController = null;
 		}
 
-		public TileViewController OnPieceDrop(UniqueId pieceId, Vector2 screenPosition)
+		public TileViewController OnPieceDrop(Vector2 screenPosition)
 		{
 			var dataProvider = _dataProvider.GameplayBoardDataProvider;
 			var tileOvering = GetTileFromPosition(screenPosition);
@@ -77,13 +77,11 @@ namespace Game.Controllers
 			{
 				return null;
 			}
-			
-			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tileOvering.Row, tileOvering.Column));
 
 			return tileOvering;
 		}
 
-		public void OnPieceDrag(UniqueId pieceId, Vector2 screenPosition)
+		public void OnPieceDrag(Vector2 screenPosition)
 		{
 			var dataProvider = _dataProvider.GameplayBoardDataProvider;
 			var tileOvering = GetTileFromPosition(screenPosition);
@@ -158,7 +156,7 @@ namespace Game.Controllers
 				var rotation = startRotation + Constants.Gameplay.Slice_Rotation * i;
 				
 				sourcePiece.Slices[sourceIndex].RectTransform.SetParent(parent);
-				sourcePiece.Slices[sourceIndex].StartTransferAnimation(targetPiece, rotation, targetIndex, delay);
+				sourcePiece.Slices[sourceIndex].StartTransferAnimation(targetPiece, rotation, delay);
 			}
 			
 			sourcePiece.Slices.RemoveRange(sourceStartIndex, amount);
@@ -242,7 +240,7 @@ namespace Game.Controllers
 				{
 					var piece = SpawnPiece(pieceData.Id);
 
-					piece.DraggableView.MoveIntoTransform(tile.transform);
+					piece.MoveIntoTile(tile);
 					piece.AnimationSpawn(pieceCounter * Constants.Gameplay.Piece_Spawn_Delay_Time);
 
 					pieceCounter++;
