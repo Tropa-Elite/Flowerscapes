@@ -40,7 +40,7 @@ namespace Game.ViewControllers
 
 		public void SetOveringState(bool isOvering)
 		{
-			_image.color = isOvering ? Constants.Gameplay.TILE_OVERING_COLOR : _initialColor;
+			_image.color = isOvering ? Constants.Gameplay.Tile_Overing_Color : _initialColor;
 		}
 	}
 }

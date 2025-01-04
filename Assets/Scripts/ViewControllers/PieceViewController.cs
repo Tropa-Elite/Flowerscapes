@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using Game.Commands;
 using Game.Controllers;
 using Game.Data;
 using Game.Ids;
 using Game.Logic;
+using Game.Services;
 using Game.Utils;
 using GameLovers;
 using GameLovers.Services;
@@ -18,34 +20,32 @@ namespace Game.ViewControllers
 		IPoolEntitySpawn<UniqueId>, IPoolEntityDespawn
 	{
 		[SerializeField] private DraggableViewController _draggableView;
-		[SerializeField] private List<SliceViewController> _slices;
-		[HideInInspector]
-		[SerializeField] private GraphicRaycaster _canvasRaycaster;
 
-		private IPiecesController _controller;
+		private IGameServicesLocator _services;
 		private IGameDataProviderLocator _dataProvider;
+		private IPiecesController _controller;
 		private UniqueId _uniqueId;
 
 		public UniqueId Id => _uniqueId;
 		public DraggableViewController DraggableView => _draggableView;
-		public bool IsFull => _slices.TrueForAll(slice => slice.isActiveAndEnabled);
-		public bool IsEmpty => _slices.TrueForAll(slice => !slice.isActiveAndEnabled);
-		public bool IsComplete => IsFull && _slices.Select(s => s.SliceColor).Distinct().Count() == 1;
+		public List<SliceViewController> Slices { get; } = new ();
+		public bool IsFull => Slices.Count == Constants.Gameplay.Max_Piece_Slices;
+		public bool IsEmpty => Slices.Count == 0;
+		public bool IsComplete => IsFull && Slices.Select(s => s.SliceColor).Distinct().Count() == 1;
 
 		protected override void OnEditorValidate()
 		{
 			_draggableView = _draggableView != null ? _draggableView : GetComponent<DraggableViewController>();
-			_slices = _slices.Count == 0 ? new List<SliceViewController>(GetComponentsInChildren<SliceViewController>()) : _slices;
 		}
 
 		private void Awake()
 		{
 			var isMobile = Application.isMobilePlatform;
 			
+			_services = MainInstaller.Resolve<IGameServicesLocator>();
 			_dataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
-			_draggableView.DragSpeed = isMobile ? Constants.Gameplay.PIECE_MOBILE_SPEED : Constants.Gameplay.PIECE_DESKTOP_SPEED;
-			_draggableView.Offset = isMobile ? Constants.Gameplay.PIECE_MOBILE_OFFSET : Constants.Gameplay.PIECE_DESKTOP_OFFSET;
-			_canvasRaycaster = _canvasRaycaster != null ? _canvasRaycaster : GetComponentInParent<GraphicRaycaster>();
+			_draggableView.DragSpeed = isMobile ? Constants.Gameplay.Piece_Mobile_Speed : Constants.Gameplay.Piece_Desktop_Speed;
+			_draggableView.PivotOffset = isMobile ? Constants.Gameplay.Draggable_Mobile_Pivot_Offset : Constants.Gameplay.Draggable_Desktop_Pivot_Offset;
 		}
 
 		private void OnDestroy()
@@ -58,6 +58,28 @@ namespace Game.ViewControllers
 			_controller = controller;
 		}
 
+		public int GetNewSliceIndex(SliceColor color, out Vector3 rotation)
+		{
+			var index = Slices.FindLastIndex(s => s.SliceColor == color);
+
+			index = index < 0 ? Slices.Count : index + 1;
+			rotation = Slices[index - 1].RectTransform.rotation.eulerAngles + Constants.Gameplay.Slice_Rotation;
+			
+			return index;
+		}
+
+		public int GetSlicesCount(SliceColor color)
+		{
+			var count = 0;
+			
+			foreach (var slice in Slices)
+			{
+				count += slice.SliceColor == color ? 1 : 0;
+			}
+
+			return count;
+		}
+
 		/// <inheritdoc />
 		public void OnPointerUp(PointerEventData eventData)
 		{
@@ -66,18 +88,19 @@ namespace Game.ViewControllers
 				return;
 			}
 
-			if (!TryGetTileFromPosition(RectTransform.position, out var tile) ||
-			    _dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out _))
+			var tile = _controller.OnPieceDrop(RectTransform.TransformPoint(RectTransform.rect.center));
+			
+			if (tile.IsValid())
 			{
-				_draggableView.ResetDraggable();
-				_controller.OnPieceDrop(Id, null);
-				return;
+				_draggableView.enabled = false;
+				
+				MoveIntoTile(tile);
+				_services.CommandService.ExecuteCommand(new PieceDropCommand(Id, tile.Row, tile.Column));
 			}
-
-			_draggableView.enabled = false;
-
-			_draggableView.MoveIntoTransform(tile.transform);
-			_controller.OnPieceDrop(Id, tile);
+			else
+			{
+				_draggableView.ResetPosition();
+			}
 		}
 
 		/// <inheritdoc />
@@ -91,132 +114,118 @@ namespace Game.ViewControllers
 			{
 				return;
 			}
-
-			if (TryGetTileFromPosition(RectTransform.position, out var tile))
-			{
-				_controller.OnPieceDrag(tile);
-			}
-			else
-			{
-				_controller.OnPieceDrag(null);
-			}
+			
+			_controller.OnPieceDrag(RectTransform.TransformPoint(RectTransform.rect.center));
 		}
 
 		/// <inheritdoc />
 		public void OnSpawn(UniqueId id)
 		{
-			_uniqueId = id;
-			_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(id);
+			var slices = _dataProvider.PieceDataProvider.Pieces[id].Slices;
 
-			UpdateSlices();
+			for (var i = 0; i < Constants.Gameplay.Max_Piece_Slices; i++)
+			{
+				if (i >= slices.Count)
+				{
+					break;
+				}
+
+				var slice = _services.PoolService.Spawn<SliceViewController, SliceColor>(slices[i]);
+				var rotation = Quaternion.Euler(Constants.Gameplay.Slice_Rotation * i);
+
+				slice.RectTransform.SetParent(transform);
+				slice.RectTransform.SetLocalPositionAndRotation(Vector3.zero, rotation);
+				Slices.Add(slice);
+				
+				slice.RectTransform.localScale = Vector3.one;
+			}
+			
+			_uniqueId = id;
+			_draggableView.enabled = false;
+			RectTransform.localScale = Vector3.zero;
 		}
 
 		/// <inheritdoc />
 		public void OnDespawn()
 		{
 			_uniqueId = UniqueId.Invalid;
+			
+			foreach (var slice in Slices)
+			{
+				_services.PoolService.Despawn(slice);
+			}
+			
+			RectTransform.DOKill();
+			Slices.Clear();
 		}
 
-		public void AddSlice(SliceViewController newSlice)
+		public void MoveIntoTile(TileViewController tile)
 		{
-			var index = _slices.FindLastIndex(slice => slice.isActiveAndEnabled && slice.SliceColor == newSlice.SliceColor);
-			var lastColor = newSlice.SliceColor;
+			RectTransform.SetParent(tile.transform);
+			RectTransform.SetAsLastSibling();
+			DraggableView.ResetPivot();
 
-			for (var i = index + 1; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
+			RectTransform.anchoredPosition = Vector3.zero;
+		}
+		
+		public void AddSlice(SliceViewController slice)
+		{
+			var index = GetNewSliceIndex(slice.SliceColor, out var rotation);
+			var tweener = slice.StartRotateAnimation(rotation);
+			
+			slice.RectTransform.SetParent(transform);
+			slice.RectTransform.SetLocalPositionAndRotation(Vector3.zero, slice.RectTransform.localRotation);
+			Slices.Insert(index, slice);
+			
+			if (index < Constants.Gameplay.Max_Piece_Slices - 1 || !IsComplete) return;
+
+			if (tweener.IsValid())
 			{
-				var color = _slices[i].SliceColor;
+				tweener.OnComplete(AnimationComplete);
+			}
+			else
+			{
+				AnimationComplete();
+			}
+		}
+
+		public void AdjustRemainingSlicesAnimation(float delay)
+		{
+			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(_uniqueId) && IsEmpty)
+			{
+				_services.CoroutineService.StartDelayCall(_controller.DespawnPiece, this, delay);
+				return;
+			}
+			
+			for (var i = 1; i < Slices.Count; i++)
+			{
+				var newRotation = Slices[i - 1].RectTransform.rotation.eulerAngles + Constants.Gameplay.Slice_Rotation;
 				
-				_slices[i].SliceColor = lastColor;
-				lastColor = color;
-				
-				if (!_slices[i].isActiveAndEnabled)
-				{
-					_slices[i].gameObject.SetActive(true);
-					break;
-				}
+				Slices[i].StartRotateAnimation(newRotation);
 			}
 		}
 
-		public void RemoveSlice(SliceViewController oldSlice)
+		private void AnimationComplete()
 		{
-			var shifted = false;
-
-			for (var i = 0; i < _slices.Count - 1; i++)
+			for (var i = 0; i < Slices.Count; i++)
 			{
-				if (_slices[i].SliceColor == oldSlice.SliceColor && _slices[i + 1].SliceColor != oldSlice.SliceColor)
-				{
-					shifted = true;
-				}
-
-				if (shifted)
-				{
-					_slices[i].OnSpawn(_slices[i + 1].SliceColor);
-				}
-
-				if (_slices[i + 1].IsDisabled)
-				{
-					_slices[i].Disable();
-					break;
-				}
-			}
-		}
-
-		private void UpdateSlices()
-		{
-			var slices = _dataProvider.PieceDataProvider.Pieces[_uniqueId].Slices;
-
-			for (var i = 0; i < Constants.Gameplay.MAX_PIECE_SLICES; i++)
-			{
-				if (i >= slices.Count)
-				{
-					_slices[i].Disable();
-					continue;
-				}
-
-				_slices[i].SliceColor = slices[i];
-
-				_slices[i].gameObject.SetActive(true);
-			}
-		}
-
-		private bool TryGetTileFromPosition(Vector3 position, out TileViewController tile)
-		{
-			tile = null;
-			
-			if (!_canvasRaycaster.RaycastPoint(position, out var hits))
-			{
-				return false;
-			}
-
-			var hit = hits.Find(x => x.gameObject.HasComponent<TileViewController>());
-
-			// Is not allowed to put a piece on a tile with already a piece in it
-			if (!hit.isValid)
-			{
-				return false;
+				Slices[i].RectTransform.DOKill();
 			}
 			
-			var hitTile = hit.gameObject.GetComponent<TileViewController>();
-			var limitDistance = hitTile.RectTransform.TransformVector(hitTile.RectTransform.rect.size).x * 3f / 5f;
-
-			// Avoid flickering the tile selection in the corners
-			if (Freya.Mathfs.DistanceSquared(hitTile.RectTransform.position, position) > limitDistance * limitDistance)
-			{
-				return false;
-			}
-
-			tile = hitTile;
-
-			return true;
+			RectTransform.DOScale(Vector3.zero, Constants.Gameplay.Piece_Complete_Tween_Time)
+				.SetEase(Ease.InBack)
+				.OnComplete(() => _controller.DespawnPiece(this));
 		}
 
-		public void AnimateComplete(IObjectPool<PieceViewController> pool)
+		public void AnimationSpawn(float delay)
 		{
-			var duration = Constants.Gameplay.PIECE_COMPLETE_TWEEN_TIME;
-			var delay = Constants.Gameplay.PIECE_DELAY_TWEEN_TIME;
-			var poolClosure = pool;
-			
-			RectTransform.DOPunchScale(Vector3.one * 1.5f, duration).SetDelay(delay).OnComplete(() => poolClosure.Despawn(this));
+			RectTransform.DOScale(Vector3.one, Constants.Gameplay.Piece_Spawn_Tween_Time)
+				.SetDelay(delay)
+				.SetEase(Ease.OutBack)
+				.OnComplete(() =>
+				{
+					_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(_uniqueId);
+				});
 		}
 	}
 }

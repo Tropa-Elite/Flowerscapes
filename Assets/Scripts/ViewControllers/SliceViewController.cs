@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace Game.ViewControllers
 {
 	[RequireComponent(typeof(Image))]
-	public class SliceViewController : ViewControllerBase, IPoolEntitySpawn<SliceColor>
+	public class SliceViewController : ViewControllerBase, IPoolEntitySpawn<SliceColor>, IPoolEntityDespawn
 	{
 		private readonly Dictionary<SliceColor, Color> _colorMap = new()
 		{
@@ -20,12 +20,13 @@ namespace Game.ViewControllers
 			{ SliceColor.Yellow, Color.yellow },
 			{ SliceColor.Green, Color.green },
 			{ SliceColor.Blue, Color.blue },
-			{ SliceColor.ColorCount, Color.clear },
+			{ SliceColor.ColorCount, Color.magenta },
 		};
 
 		[SerializeField] private Image _image;
 
 		private SliceColor _sliceColor = SliceColor.ColorCount;
+		private Tweener _rotateTweener;
 
 		public SliceColor SliceColor 
 		{ 
@@ -37,8 +38,6 @@ namespace Game.ViewControllers
 			}
 		}
 
-		public bool IsDisabled => SliceColor == SliceColor.ColorCount;
-
 		protected override void OnEditorValidate()
 		{
 			_image = _image == null ? GetComponent<Image>() : _image;
@@ -49,11 +48,36 @@ namespace Game.ViewControllers
 			SliceColor = color;
 		}
 
-		public void Disable()
+		public void OnDespawn()
 		{
-			SliceColor = SliceColor.ColorCount;
+			RectTransform.DOKill();
+		}
+
+		public void StartTransferAnimation(PieceViewController toPiece, Vector3 finalRotation, float delay)
+		{
+			var duration = Constants.Gameplay.Slice_Transfer_Tween_Time;
+			var toPieceClosure = toPiece;
 			
-			gameObject.SetActive(false);
+			_rotateTweener?.Kill();
+			
+			_rotateTweener = RectTransform.DOLocalRotate(finalRotation, duration * 0.95f).SetDelay(delay);
+			
+			RectTransform.DOMove(toPiece.RectTransform.position, duration) 
+				.SetDelay(delay)
+				.OnComplete(() => toPieceClosure.AddSlice(this));
+		}
+
+		public Tweener StartRotateAnimation(Vector3 newRotation)
+		{
+			var duration = Constants.Gameplay.Slice_Rotation_Tween_Time;
+
+			if (Freya.Mathfs.DistanceSquared(RectTransform.rotation.eulerAngles, newRotation) < 0.0001f) return null;
+			
+			_rotateTweener?.Kill();
+
+			_rotateTweener = RectTransform.DOLocalRotate(newRotation, duration);
+			
+			return _rotateTweener;
 		}
 	}
 }

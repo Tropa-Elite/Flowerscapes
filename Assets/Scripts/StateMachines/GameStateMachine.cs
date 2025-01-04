@@ -1,9 +1,6 @@
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
-using Game.Logic;
 using Game.Services;
-using System;
-using TMPro;
 
 namespace Game.StateMachines
 {
@@ -19,7 +16,7 @@ namespace Game.StateMachines
 		private readonly GameplayState _gameplayState;
 		private readonly MainMenuState _mainMenuState;
 
-		/// <inheritdoc cref="IStateMachine.LogsEnabled"/>
+		/// <inheritdoc cref="IStatechart.LogsEnabled"/>
 		public bool LogsEnabled
 		{
 			get => _stateMachine.LogsEnabled;
@@ -31,7 +28,7 @@ namespace Game.StateMachines
 			_services = installer.Resolve<IGameServicesLocator>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
 
-			_initialLoadingState = new InitialLoadingState(installer);
+			_initialLoadingState = new InitialLoadingState(installer, Trigger);
 			_gameplayState = new GameplayState(installer, Trigger);
 			_mainMenuState = new MainMenuState(installer, Trigger);
 			_stateMachine = new Statechart(Setup);

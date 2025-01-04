@@ -9,7 +9,7 @@ namespace Game.ViewControllers
 	{
 		public float DragSpeed = 1f;
 		public bool TweenPivot = true;
-		public Vector2 Offset = Vector2.up;
+		public Vector2 PivotOffset = Vector2.up;
 		
 		private Tweener _resetTweener;
 		private Vector2 _initialPivot;
@@ -37,8 +37,8 @@ namespace Game.ViewControllers
 			RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvasTransform,
 				eventData.position, null, out var position);
 			
-			RectTransform.pivot = _initialPivot - Offset;
-			RectTransform.anchoredPosition = position + Offset;
+			RectTransform.pivot = _initialPivot - PivotOffset;
+			RectTransform.anchoredPosition = position;
 			_previousPosition = RectTransform.anchoredPosition;
 		}
 
@@ -53,15 +53,19 @@ namespace Game.ViewControllers
 			}
 		}
 
-		public void ResetDraggable()
+		public void ResetPivot()
+		{
+			RectTransform.pivot = _initialPivot;
+		}
+
+		public void ResetPosition()
 		{
 			RectTransform.SetParent(_initialParent);
-			
-			RectTransform.pivot = _initialPivot;
+			ResetPivot();
 			
 			if (TweenPivot)
 			{
-				var duration = Constants.Gameplay.PIECE_PIVOT_TWEEN_TIME;
+				var duration = Constants.Gameplay.Piece_Pivot_Tween_Time;
 				
 				_resetTweener = DOVirtual.Vector2(RectTransform.anchoredPosition, _initialPosition, duration, UpdatePosition);
 			}
@@ -69,15 +73,6 @@ namespace Game.ViewControllers
 			{
 				RectTransform.anchoredPosition = _initialPosition;
 			}
-		}
-
-		public void MoveIntoTransform(Transform newTransform)
-		{
-			RectTransform.SetParent(newTransform);
-			RectTransform.SetAsLastSibling();
-
-			RectTransform.pivot = _initialPivot;
-			RectTransform.anchoredPosition = Vector3.zero;
 		}
 
 		private void UpdatePosition(Vector2 value)

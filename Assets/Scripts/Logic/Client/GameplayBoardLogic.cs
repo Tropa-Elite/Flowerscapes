@@ -74,7 +74,7 @@ namespace Game.Logic.Client
 			tile = null;
 			
 			if (row < 0 || column < 0 || 
-			    row >= Constants.Gameplay.BOARD_ROWS || column >= Constants.Gameplay.BOARD_COLUMNS ||
+			    row >= Constants.Gameplay.Board_Rows || column >= Constants.Gameplay.Board_Columns ||
 			    Data.Board[row, column] == null)
 			{
 				return false;
@@ -102,13 +102,13 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public bool IsGameOver()
 		{
-			var tileCount = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
+			var tileCount = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns;
 
 			if(GameDataProvider.PieceDataProvider.Pieces.Count - _pieceDeck.Count < tileCount) return false;
 
-			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			for (var i = 0; i < Constants.Gameplay.Board_Rows; i++)
 			{
-				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				for (var j = 0; j < Constants.Gameplay.Board_Columns; j++)
 				{
 					if (Data.Board[i, j] == null || !Data.Board[i, j].PieceId.IsValid)
 					{
@@ -165,12 +165,10 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public void ActivateTile(int row, int column, IPiecesLogic pieceLogic, out List<PieceTransferData> transferHistory)
 		{
-			var tile = Data.Board[row, column];
+			var centerTile = Data.Board[row, column];
 			var adjacentTiles = GetAdjacentTileList(row, column);
-			var slices = pieceLogic.Pieces[tile.PieceId].GetSlicesColors();
 			var slicesCache = new Dictionary<SliceColor, IPieceData>();
 			var transferDone = false;
-			var counter = 10;
 			
 			transferHistory = new List<PieceTransferData>();
 
@@ -180,18 +178,18 @@ namespace Game.Logic.Client
 
 				foreach (var nextTile in adjacentTiles)
 				{
-					transferDone = TryTransferSlices(tile, nextTile, pieceLogic, slices, slicesCache, transferHistory) || transferDone;
+					transferDone = TryTransferSlices(centerTile, nextTile, pieceLogic, slicesCache, transferHistory) || transferDone;
 				}
 			} 
-			while (transferDone && counter-- > 0);
+			while (transferDone);
 
-			adjacentTiles.Insert(0, tile);
+			adjacentTiles.Insert(0, centerTile);
 
 			foreach (var nextTile in adjacentTiles)
 			{
 				var piece = pieceLogic.Pieces[nextTile.PieceId];
 				
-				if (piece.Slices.Count == 0 || piece.Slices.Count == Constants.Gameplay.MAX_PIECE_SLICES)
+				if (piece.Slices.Count == 0 || piece.Slices.Count == Constants.Gameplay.Max_Piece_Slices)
 				{
 					pieceLogic.Pieces.Remove(nextTile.PieceId);
 					CleanUpTile(nextTile.Row, nextTile.Column);
@@ -213,7 +211,7 @@ namespace Game.Logic.Client
 		{
 			PieceDeck.Clear();
 
-			for (var i = 0; i < Constants.Gameplay.MAX_DECK_PIECES; i++)
+			for (var i = 0; i < Constants.Gameplay.Max_Deck_Pieces; i++)
 			{
 				PieceDeck.Add(createPieceFunc().Id);
 			}
@@ -222,15 +220,15 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public void RefillBoard(Func<PieceData> createPieceFunc, IRngLogic rngLogic)
 		{
-			for (var i = 0; i < Constants.Gameplay.BOARD_ROWS; i++)
+			for (var i = 0; i < Constants.Gameplay.Board_Rows; i++)
 			{
-				for (var j = 0; j < Constants.Gameplay.BOARD_COLUMNS; j++)
+				for (var j = 0; j < Constants.Gameplay.Board_Columns; j++)
 				{
 					CleanUpTile(i, j);
 				}
 			}
 
-			var totalSpace = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS;
+			var totalSpace = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns;
 			var totalPieces = rngLogic.Range(totalSpace / 4, totalSpace / 2);
 
 			for (int i = 0, pos = -1; i < totalPieces; i++)
@@ -238,14 +236,13 @@ namespace Game.Logic.Client
 				pos = rngLogic.Range(pos + 1, totalSpace - totalPieces + i);
 
 				SetPieceOnTile(createPieceFunc().Id,
-					pos / Constants.Gameplay.BOARD_COLUMNS,
-					pos % Constants.Gameplay.BOARD_COLUMNS);
+					pos / Constants.Gameplay.Board_Columns,
+					pos % Constants.Gameplay.Board_Columns);
 			}
 		}
 
 		private bool TryTransferSlices(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
-			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache,
-			List<PieceTransferData> transferHistory)
+			 Dictionary<SliceColor, IPieceData> slicesCache, List<PieceTransferData> transferHistory)
 		{
 			var centerPiece = pieceLogic.Pieces[centerTile.PieceId];
 			var nextPiece = pieceLogic.Pieces[nextTile.PieceId];
@@ -255,34 +252,16 @@ namespace Game.Logic.Client
 				return false;
 			}
 			
+			var centerSlices = centerPiece.GetSlicesColors();
 			var nextSlices = nextPiece.GetSlicesColors();
 
 			foreach (var slicePair in nextSlices)
 			{
-				var color = slicePair.Key;
-				var canReceiveSlices = nextSlices.Count > 1 && centerPiece.SlicesFreeSpace > slicePair.Value;
-				
-				// Check first if the target piece has the color being processed to transfer or then give it up from cache collection
-				if (centerSlices.ContainsKey(color))
+				if (TryTransferToCenter(centerTile, nextTile, pieceLogic, centerSlices, nextSlices, slicePair, out var transfer) ||
+				    TryTransferFromCenter(centerTile, nextTile, pieceLogic, centerSlices, nextSlices, slicesCache, slicePair.Key, out transfer) ||
+				    TryTransferToCenterFromCache(centerTile, nextTile, pieceLogic, slicesCache, slicePair.Key, out transfer))
 				{
-					if (!centerPiece.IsEmpty && !centerPiece.IsFull && (centerSlices.Count == 1 || canReceiveSlices))
-					{
-						TransferToCenterTile(centerTile, nextTile, pieceLogic, centerSlices, color, out var transferCount);
-						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, nextPiece.Id, centerPiece.Id, color, transferCount));
-						
-						return true;
-					}
-					if (!centerPiece.IsComplete && nextSlices.Count == 1)
-					{
-						TransferFromCenterTile(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color, out var transferCount);
-						transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, transferCount));
-						
-						return true;
-					}
-				}
-				else if (TryTransferFromCache(centerTile, nextTile, pieceLogic, centerSlices, slicesCache, color))
-				{
-					transferHistory.Add(new PieceTransferData(nextTile.Id, centerTile.Id, centerPiece.Id, nextPiece.Id, color, centerSlices[color]));
+					transferHistory.Add(transfer);
 					
 					return true;
 				}
@@ -291,44 +270,78 @@ namespace Game.Logic.Client
 			return false;
 		}
 
-		private void TransferToCenterTile(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
-			Dictionary<SliceColor, int> centerSlices, SliceColor color, out int transferCount)
+		private bool TryTransferToCenter(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, int> nextSlices, 
+			KeyValuePair<SliceColor, int> color, out PieceTransferData transfer)
 		{
-			transferCount = pieceLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color);
-			centerSlices[color] += transferCount;
+			var centerPiece = pieceLogic.Pieces[centerTile.PieceId];
+			// Check the 11 | 1133  -> 1111 | 33 or 1122 | 1133 -> 111122 | 33 cases where center can accept extra slices
+			var canAcceptExtraSlices = nextSlices.Count > 1 && centerPiece.SlicesFreeSpace >= color.Value;
+			var canAcceptSlices = centerSlices.Count == 1 || canAcceptExtraSlices;
+			
+			if(!centerSlices.ContainsKey(color.Key) || centerPiece.IsEmpty || centerPiece.IsFull || !canAcceptSlices)
+			{
+				transfer = default;
+				
+				return false;
+			}
+			
+			var amount = pieceLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color.Key);
+			
+			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color.Key, amount);
+
+			return true;
 		}
 
-		private void TransferFromCenterTile(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
-			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache,
-			SliceColor color, out int transferCount)
+		private bool TryTransferFromCenter(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
+			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, int> nextSlices, 
+			Dictionary<SliceColor, IPieceData> slicesCache, SliceColor color, out PieceTransferData transfer)
 		{
+			var centerPiece = pieceLogic.Pieces[centerTile.PieceId];
 			var nextPiece = pieceLogic.Pieces[nextTile.PieceId];
 			
-			transferCount = pieceLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color);
-			centerSlices[color] -= transferCount;
-
-			if (centerSlices[color] == 0)
+			if(!centerSlices.ContainsKey(color) || centerPiece.IsComplete || nextSlices.Count > 1)
 			{
-				centerSlices.Remove(color);
+				transfer = default;
+
+				return false;
 			}
+			
+			var amount = pieceLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color);
+			
+			transfer = new PieceTransferData(centerTile.Id, nextTile.Id, centerTile.PieceId, nextPiece.Id, color, amount);
+			
 			if (!nextPiece.IsFull)
 			{
 				slicesCache.Add(color, nextPiece);
 			}
+
+			return true;
 		}
 
-		private bool TryTransferFromCache(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic,
-			Dictionary<SliceColor, int> centerSlices, Dictionary<SliceColor, IPieceData> slicesCache, SliceColor color)
+		private bool TryTransferToCenterFromCache(ITileData centerTile, ITileData nextTile, IPiecesLogic pieceLogic, 
+			Dictionary<SliceColor, IPieceData> slicesCache, SliceColor color, out PieceTransferData transfer)
 		{
-			if (!slicesCache.TryGetValue(color, out var cachePiece) || cachePiece.Id == nextTile.PieceId || cachePiece.IsFull)
+			var centerPiece = pieceLogic.Pieces[centerTile.PieceId];
+			
+			if(!slicesCache.TryGetValue(color, out var cachePiece) || cachePiece.Id == nextTile.PieceId || cachePiece.IsFull)
 			{
+				transfer = default;
+
 				return false;
 			}
 			
-			centerSlices[color] = pieceLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color, cachePiece.SlicesFreeSpace);
-
-			slicesCache.Remove(color);
+			var centerColorAmount = centerPiece.GetSlicesCount(color);
+			var maxSlices = cachePiece.SlicesFreeSpace - centerColorAmount;
+			var amount = pieceLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color, maxSlices);
 			
+			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color, amount);
+
+			if (centerPiece.IsFull || cachePiece.SlicesFreeSpace == centerColorAmount + amount)
+			{
+				slicesCache.Remove(color);
+			}
+
 			return true;
 		}
 	}

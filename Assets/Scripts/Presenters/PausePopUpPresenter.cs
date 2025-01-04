@@ -9,11 +9,11 @@ using UnityEngine.UI;
 namespace Game.Presenters
 {
     /// <summary>
-    /// This Presenter handles the Pause Screen UI by:
+    /// This Presenter handles the Pause Pop Up UI by:
     /// - Allowing the user to restart the game
     /// - Allowing the user to return to the main menu and leave the game at the same state
     /// </summary>
-    public class PauseScreenPresenter : UiPresenterData<PauseScreenPresenter.PresenterData>
+    public class PausePopUpPresenter : UiPresenterData<PausePopUpPresenter.PresenterData>
     {
         public struct PresenterData
         {

@@ -1,3 +1,4 @@
+using System;
 using Game.Data;
 using GameLovers.ConfigsProvider;
 using GameLovers.Services;
@@ -11,6 +12,9 @@ using Game.Commands;
 using Cysharp.Threading.Tasks;
 using GameLovers.AssetsImporter;
 using Game.Configs;
+using Game.Messages;
+using Game.Presenters;
+using Game.Utils;
 
 namespace Game.StateMachines
 {
@@ -19,14 +23,17 @@ namespace Game.StateMachines
 	/// </summary>
 	internal class InitialLoadingState
 	{
+		private static readonly IStatechartEvent _compliance_Clicked_Event = new StatechartEvent("Compliance Accept Clicked Event");
+		
 		private readonly IGameServicesLocator _services;
 		private readonly IGameLogicLocatorInit _gameLogic;
 		private readonly IGameUiServiceInit _uiService;
 		private readonly IConfigsAdder _configsAdder;
 		private readonly IDataService _dataService;
 		private readonly IAssetAdderService _assetAdderService;
+		private readonly Action<IStatechartEvent> _statechartTrigger;
 
-		public InitialLoadingState(IInstaller installer)
+		public InitialLoadingState(IInstaller installer, Action<IStatechartEvent> statechartTrigger)
 		{
 			_gameLogic = installer.Resolve<IGameLogicLocatorInit>();
 			_services = installer.Resolve<IGameServicesLocator>();
@@ -34,6 +41,7 @@ namespace Game.StateMachines
 			_configsAdder = installer.Resolve<IConfigsAdder>();
 			_dataService = installer.Resolve<IDataService>();
 			_assetAdderService = installer.Resolve<IAssetAdderService>();
+			_statechartTrigger = statechartTrigger;
 		}
 
 		/// <summary>
@@ -45,6 +53,8 @@ namespace Game.StateMachines
 			var final = stateFactory.Final("Final");
 			var dataLoading = stateFactory.TaskWait("Initial device data loading");
 			var uiLoading = stateFactory.TaskWait("Initial Ui loading");
+			var compliance = stateFactory.State("Compliance Pop Up");
+			var complianceCheck = stateFactory.Choice("Compliance Check");
 			
 			initial.Transition().Target(dataLoading);
 			initial.OnExit(SubscribeEvents);
@@ -53,19 +63,27 @@ namespace Game.StateMachines
 			dataLoading.WaitingFor(LoadConfigs).Target(uiLoading);
 			dataLoading.OnExit(InitGameLogic);
 			
-			uiLoading.WaitingFor(LoadInitialUi).Target(final);
+			uiLoading.WaitingFor(LoadInitialUi).Target(complianceCheck);
 			
+			complianceCheck.Transition().Condition(IsComplianceAccepted).Target(final);
+			complianceCheck.Transition().Target(compliance);
+			
+			compliance.OnEnter(OpenCompliancePopUp);
+			compliance.Event(_compliance_Clicked_Event).Target(final);
+			compliance.OnExit(CloseCompliancePopUp);
+			
+			final.OnEnter(FirstTimeSetup);
 			final.OnEnter(UnsubscribeEvents);
+		}
+
+		private void SubscribeEvents()
+		{
+			_services.MessageBrokerService.Subscribe<ApplicationComplianceAcceptedMessage>(OnApplicationComplianceAcceptedMessage);
 		}
 
 		private void UnsubscribeEvents()
 		{
 			_services.MessageBrokerService.UnsubscribeAll(this);
-		}
-
-		private void SubscribeEvents()
-		{
-			// Add any events to subscribe
 		}
 
 		private void InitPlugins()
@@ -85,7 +103,16 @@ namespace Game.StateMachines
 		{
 			LoadGameData();
 			_gameLogic.Init(_dataService, _services); 
+		}
+
+		private void FirstTimeSetup()
+		{
 			_services.CommandService.ExecuteCommand(new SetupFirstTimePlayerCommand());
+		}
+
+		private bool IsComplianceAccepted()
+		{
+			return _gameLogic.AppLogic.IsComplianceAccepted || !Constants.Settings.IsComplianceEnabled;
 		}
 
 		private async UniTask LoadConfigs()
@@ -137,6 +164,21 @@ namespace Game.StateMachines
 			appData.SessionCount += 1;
 			appData.LastLoginTime = appData.LoginTime;
 			appData.LoginTime = time;
+		}
+
+		private void OnApplicationComplianceAcceptedMessage(ApplicationComplianceAcceptedMessage obj)
+		{
+			_statechartTrigger(_compliance_Clicked_Event);
+		}
+
+		private void OpenCompliancePopUp()
+		{
+			_uiService.OpenUiAsync<ComplianceScreenPresenter>().Forget();
+		}
+		
+		private void CloseCompliancePopUp()
+		{
+			_uiService.CloseUi<ComplianceScreenPresenter>(true);
 		}
 	}
 }

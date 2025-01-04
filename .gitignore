@@ -119,6 +119,8 @@ GvhProjectSettings.xml
 **/AddressableAssetsData/iOS.meta
 **/AddressableAssetsData/Android/
 **/AddressableAssetsData/Android.meta
+**/AddressableAssetsData/WebGL/
+**/AddressableAssetsData/WebGL.meta
 **/AddressableAssetsData/link.xml
 **/AddressableAssetsData/link.xml.meta
 
@@ -139,6 +141,5 @@ EditorUserSettings.*
 **/AOTGenerationConfig.asset
 **/Assets/Libs/LiveScriptReload
 **/Assets/Libs/LiveScriptReload.meta
-**/Assets/Libs/Sirenix/Assemblies/AOT/
-**/Assets/Libs/Sirenix/Assemblies/AOT.meta
-!**/Assets/Libs/iOS Project Builder/*
+**/Assets/Libs/StompyRobot
+**/Assets/Libs/StompyRobot.meta

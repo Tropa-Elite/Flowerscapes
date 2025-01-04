@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Freya;
 using Game.Ids;
 using Game.Logic;
 using Game.Messages;
@@ -10,6 +12,7 @@ using Game.ViewControllers;
 using GameLovers.Services;
 using Game.Commands;
 using Game.Data;
+using GameLovers;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -17,8 +20,9 @@ namespace Game.Controllers
 {
 	public interface IPiecesController
 	{
-		void OnPieceDrop(UniqueId piece, TileViewController tile);
-		void OnPieceDrag(TileViewController tileOvering);
+		TileViewController OnPieceDrop(Vector2 screenPosition);
+		void OnPieceDrag(Vector2 screenPosition);
+		void DespawnPiece(PieceViewController piece);
 	}
 	
 	public class PiecesController : IPiecesController
@@ -27,8 +31,6 @@ namespace Game.Controllers
 		private readonly IGameServicesLocator _services;
 		private readonly IGameDataProviderLocator _dataProvider;
 		
-		private GameObjectPool<PieceViewController> _poolPieces;
-		private GameObjectPool<SliceViewController> _poolSlices;
 		private PieceDeckViewController _deckViewController;
 		private TileViewController _overingTile;
 
@@ -56,30 +58,33 @@ namespace Game.Controllers
 
 		public void CleanUp()
 		{
-			_poolPieces.Dispose();
-			Object.Destroy(_poolPieces.SampleEntity.transform.parent.gameObject);
 			_services.MessageBrokerService.Unsubscribe<OnPieceDroppedMessage>(this);
+			_services.PoolService.Dispose<SliceViewController>(true);
+			_services.PoolService.Dispose<PieceViewController>(true);
 
-			_poolPieces = null;
 			_deckViewController = null;
 		}
 
-		public void OnPieceDrop(UniqueId pieceId, TileViewController tile)
-		{
-			_overingTile?.SetOveringState(false);
-
-			// This means that it dropped over a tile
-			if (tile == null)
-			{
-				return;
-			}
-			
-			_services.CommandService.ExecuteCommand(new PieceDropCommand(pieceId, tile.Row, tile.Column));
-		}
-
-		public void OnPieceDrag(TileViewController tileOvering)
+		public TileViewController OnPieceDrop(Vector2 screenPosition)
 		{
 			var dataProvider = _dataProvider.GameplayBoardDataProvider;
+			var tileOvering = GetTileFromPosition(screenPosition);
+			
+			_overingTile?.SetOveringState(false);
+
+			// This means that it didn't drop over an empty tile or there is already a piece in it
+			if (tileOvering == null || dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
+			{
+				return null;
+			}
+
+			return tileOvering;
+		}
+
+		public void OnPieceDrag(Vector2 screenPosition)
+		{
+			var dataProvider = _dataProvider.GameplayBoardDataProvider;
+			var tileOvering = GetTileFromPosition(screenPosition);
 			
 			// This means that there is already a piece where the player wants to drop it 
 			if (tileOvering != null && dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
@@ -96,9 +101,15 @@ namespace Game.Controllers
 			_overingTile = tileOvering;
 		}
 
+		public void DespawnPiece(PieceViewController piece)
+		{
+			_services.PoolService.Despawn(piece);
+			_spawnedPieces.Remove(piece.Id);
+		}
+
 		private void OnPieceDroppedMessage(OnPieceDroppedMessage message)
 		{
-			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.MAX_DECK_PIECES)
+			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.Max_Deck_Pieces)
 			{
 				SpawnDeckPieces();
 			}
@@ -107,55 +118,49 @@ namespace Game.Controllers
 			{
 				var sourcePiece = _spawnedPieces[transfer.OriginPieceId];
 				var targetPiece = _spawnedPieces[transfer.TargetPieceId];
-
-				for(var i = 0; i < transfer.SlicesAmount; i++)
+				
+				if(sourcePiece.GetSlicesCount(transfer.SliceColor) < transfer.SlicesAmount)
 				{
-					var slice = _poolSlices.Spawn(transfer.SliceColor);
-					
-					StartSliceTransferAnimation(sourcePiece, targetPiece, slice, i * Constants.Gameplay.PIECE_DELAY_TWEEN_TIME);
+					TransferSlicesDelay(sourcePiece, targetPiece, transfer.SliceColor, transfer.SlicesAmount).Forget();
+					continue;
 				}
+				
+				TransferSlices(sourcePiece, targetPiece, transfer.SliceColor, transfer.SlicesAmount);
 			}
 		}
 
-		private void StartSliceTransferAnimation(PieceViewController fromPiece, PieceViewController toPiece, 
-			SliceViewController slice, float delay)
+		private async UniTaskVoid TransferSlicesDelay(PieceViewController sourcePiece, PieceViewController targetPiece,
+			SliceColor color, int amount)
 		{
-			var duration = Constants.Gameplay.SLICE_TRANSFER_TWEEN_TIME;
-			var fromPieceClosure = fromPiece;
-			var toPieceClosure = toPiece;
-			var sliceClosure = slice;
-			
-			slice.RectTransform.position = fromPiece.RectTransform.position;
-					
-			slice.RectTransform.DOMove(toPieceClosure.RectTransform.position, duration)
-				.SetDelay(delay)
-				.OnStart(() => OnSliceTransferAnimationStarted(fromPieceClosure, sliceClosure))
-				.OnComplete(() => OnSliceTransferAnimationCompleted(toPieceClosure, sliceClosure));
-		}
-		
-		private void OnSliceTransferAnimationStarted(PieceViewController piece, SliceViewController slice)
-		{
-			piece.RemoveSlice(slice);
-			
-			if (!_dataProvider.PieceDataProvider.Pieces.ContainsKey(piece.Id) && piece.IsEmpty)
+			await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Tween_Time * 1000));
+
+			while (sourcePiece.GetSlicesCount(color) < amount)
 			{
-				_poolPieces.Despawn(piece);
-				_spawnedPieces.Remove(piece.Id);
+				await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Delay_Time * 1000));
 			}
+			
+			TransferSlices(sourcePiece, targetPiece, color, amount);
 		}
 
-		private void OnSliceTransferAnimationCompleted(PieceViewController piece, SliceViewController slice)
+		private void TransferSlices(PieceViewController sourcePiece, PieceViewController targetPiece, SliceColor color, int amount)
 		{
-			piece.AddSlice(slice);
-			_poolSlices.Despawn(slice);
+			var parent = _services.PoolService.GetPool<SliceViewController>().SampleEntity.transform.parent;
+			var targetStartIndex = targetPiece.GetNewSliceIndex(color, out var startRotation);
+			var sourceStartIndex = sourcePiece.Slices.FindIndex(s => s.SliceColor == color);
 			
-			// TODO: animate sort piece slices
-			
-			if (piece.IsComplete)
+			for (var i = 0; i < amount; i++)
 			{
-				piece.AnimateComplete(_poolPieces);
-				_spawnedPieces.Remove(piece.Id);
+				var sourceIndex = sourceStartIndex + i;
+				var targetIndex = targetStartIndex + i;
+				var delay = i * Constants.Gameplay.Slice_Transfer_Delay_Time;
+				var rotation = startRotation + Constants.Gameplay.Slice_Rotation * i;
+				
+				sourcePiece.Slices[sourceIndex].RectTransform.SetParent(parent);
+				sourcePiece.Slices[sourceIndex].StartTransferAnimation(targetPiece, rotation, delay);
 			}
+			
+			sourcePiece.Slices.RemoveRange(sourceStartIndex, amount);
+			sourcePiece.AdjustRemainingSlicesAnimation(amount * Constants.Gameplay.Slice_Transfer_Delay_Time);
 		}
 
 		private async UniTask CreatePools()
@@ -165,14 +170,19 @@ namespace Game.Controllers
 			var pieceAddress = AddressableId.Addressables_Prefabs_Piece.GetConfig().Address;
 			var sliceAddress = AddressableId.Addressables_Prefabs_Slice.GetConfig().Address;
 			var initPosition = Vector3.right * 10000; // Move out of the screen
-			var poolSize = Constants.Gameplay.BOARD_ROWS * Constants.Gameplay.BOARD_COLUMNS / 2;
-			var piece = await assetService.InstantiateAsync(pieceAddress, initPosition, Quaternion.identity, poolTransform);
-			var slice = await assetService.InstantiateAsync(sliceAddress, initPosition, Quaternion.identity, poolTransform);
+			var poolSize = Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns / 2;
+			var piece = await assetService.InstantiateAsync(pieceAddress, initPosition, Quaternion.identity, poolTransform, DeactivateAsset);
+			var slice = await assetService.InstantiateAsync(sliceAddress, initPosition, Quaternion.identity, poolTransform, DeactivateAsset);
+			var poolSlices = new GameObjectPool<SliceViewController>(100, slice.GetComponent<SliceViewController>());
+			var poolPieces = new GameObjectPool<PieceViewController>((uint)poolSize, piece.GetComponent<PieceViewController>(), PieceInstantiator);
 
-			_poolPieces = new GameObjectPool<PieceViewController>((uint)poolSize, piece.GetComponent<PieceViewController>(), PieceInstantiator);
-			_poolSlices = new GameObjectPool<SliceViewController>(100, slice.GetComponent<SliceViewController>());
+			_services.PoolService.AddPool(poolPieces);
+			_services.PoolService.AddPool(poolSlices);
+		}
 
-			piece.gameObject.SetActive(false);
+		private void DeactivateAsset(GameObject asset)
+		{
+			asset.SetActive(false);
 		}
 
 		private PieceViewController PieceInstantiator(PieceViewController piece)
@@ -187,8 +197,9 @@ namespace Game.Controllers
 		private Transform CreatePoolTransform()
 		{
 			var poolTransform = new GameObject("PiecesController Pool").GetComponent<Transform>();
+			var canvas = _deckViewController.GetComponentInParent<Canvas>();
 
-			poolTransform.SetParent(Object.FindFirstObjectByType<Canvas>().transform);
+			poolTransform.SetParent(canvas.transform);
 			poolTransform.localPosition = Vector3.zero;
 			poolTransform.localScale = Vector3.one;
 
@@ -200,8 +211,10 @@ namespace Game.Controllers
 			var distance = _deckViewController.RectTransform.rect.width / 4f;
 			var xPos = -distance * 2;
 
-			foreach (var pieceId in _dataProvider.GameplayBoardDataProvider.PieceDeck)
+			for (var i = 0; i < _dataProvider.GameplayBoardDataProvider.PieceDeck.Count; i++)
 			{
+				var pieceId = _dataProvider.GameplayBoardDataProvider.PieceDeck[i];
+				
 				xPos += distance;
 
 				if (!pieceId.IsValid) continue;
@@ -210,6 +223,7 @@ namespace Game.Controllers
 
 				piece.RectTransform.SetParent(_deckViewController.transform);
 				piece.RectTransform.SetAsLastSibling();
+				piece.AnimationSpawn(i * Constants.Gameplay.Piece_Spawn_Delay_Time);
 
 				piece.RectTransform.anchoredPosition = new Vector3(xPos, 0, 0);
 			}
@@ -218,19 +232,25 @@ namespace Game.Controllers
 		private void SpawnBoardPieces() 
 		{
 			var tiles = Object.FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
+			var pieceCounter = 0;
 
 			foreach (var tile in tiles)
 			{
 				if (_dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out var pieceData))
 				{
-					SpawnPiece(pieceData.Id).DraggableView.MoveIntoTransform(tile.transform);
+					var piece = SpawnPiece(pieceData.Id);
+
+					piece.MoveIntoTile(tile);
+					piece.AnimationSpawn(pieceCounter * Constants.Gameplay.Piece_Spawn_Delay_Time);
+
+					pieceCounter++;
 				}
 			}
 		}
 
 		private PieceViewController SpawnPiece(UniqueId pieceId)
 		{
-			var piece = _poolPieces.Spawn(pieceId);
+			var piece = _services.PoolService.Spawn<PieceViewController, UniqueId>(pieceId);
 			
 			_spawnedPieces.Add(pieceId, piece);
 			
@@ -239,12 +259,40 @@ namespace Game.Controllers
 
 		private void CleanUpPieces()
 		{
-			foreach (var spawnedPiece in _spawnedPieces)
+			var pieces = _spawnedPieces.Keys.ToArray();
+			
+			foreach (var id in pieces)
 			{
-				_poolPieces.Despawn(spawnedPiece.Value);
+				DespawnPiece(_spawnedPieces[id]);
+			}
+		}
+
+		private TileViewController GetTileFromPosition(Vector2 screenPosition)
+		{
+			if (!_deckViewController.CanvasRaycaster.RaycastPoint(screenPosition, out var hits))
+			{
+				return null;
+			}
+
+			var hit = hits.Find(x => x.gameObject.HasComponent<TileViewController>());
+
+			// Is not allowed to put a piece on a tile with already a piece in it
+			if (!hit.isValid)
+			{
+				return null;
 			}
 			
-			_spawnedPieces.Clear();
+			var hitTile = hit.gameObject.GetComponent<TileViewController>();
+			var limitDistance = hitTile.RectTransform.TransformVector(hitTile.RectTransform.rect.size).x * 3f / 5f;
+			var hitTilePosition = (Vector2) hitTile.transform.position;
+
+			// Avoid flickering the tile selection in the corners
+			if (Mathfs.DistanceSquared(hitTilePosition, screenPosition) > limitDistance * limitDistance)
+			{
+				return null;
+			}
+			
+			return hitTile;
 		}
 	}
 }
