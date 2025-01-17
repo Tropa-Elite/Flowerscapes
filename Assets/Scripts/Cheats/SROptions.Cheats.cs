@@ -29,31 +29,31 @@ public partial class SROptions
 
 	private void SetupGameBoardTestData(IGameLogicLocator gameLogic)
 	{
-		gameLogic.PiecesLogic.Pieces.GetOriginValue(gameLogic.GameplayBoardLogic.PieceDeck[0]).Slices = new List<SliceColor> 
+		gameLogic.PiecesLogic.Pieces.GetOriginValue(gameLogic.DeckSpawnerLogic.Deck[0]).Slices = new List<SliceColor> 
 		{ 
 			SliceColor.Blue, SliceColor.Blue, SliceColor.Blue
 		};
 
-		if (gameLogic.GameplayBoardLogic.TryGetPieceFromTile(0, 0, out var piece1))
+		if (gameLogic.TileBoardLogic.TryGetPieceFromTile(0, 0, out var piece1))
 		{
 			gameLogic.PiecesLogic.Pieces.Remove(piece1.Id);
-			gameLogic.GameplayBoardLogic.CleanUpTile(0, 0);
+			gameLogic.TileBoardLogic.CleanUpTile(0, 0);
 		}
-		if (gameLogic.GameplayBoardLogic.TryGetPieceFromTile(0, 1, out var piece2))
+		if (gameLogic.TileBoardLogic.TryGetPieceFromTile(0, 1, out var piece2))
 		{
 			gameLogic.PiecesLogic.Pieces.Remove(piece2.Id);
-			gameLogic.GameplayBoardLogic.CleanUpTile(0, 1);
+			gameLogic.TileBoardLogic.CleanUpTile(0, 1);
 		}
-		if (gameLogic.GameplayBoardLogic.TryGetPieceFromTile(0, 2, out var piece3))
+		if (gameLogic.TileBoardLogic.TryGetPieceFromTile(0, 2, out var piece3))
 		{
 			gameLogic.PiecesLogic.Pieces.Remove(piece3.Id);
-			gameLogic.GameplayBoardLogic.CleanUpTile(0, 2);
+			gameLogic.TileBoardLogic.CleanUpTile(0, 2);
 		}
 		var piece = gameLogic.EntityFactoryLogic.CreatePiece();
-		gameLogic.GameplayBoardLogic.SetPieceOnTile(piece.Id, 0, 0);
+		gameLogic.TileBoardLogic.SetPieceOnTile(piece.Id, 0, 0);
 		piece.Slices = new List<SliceColor> { SliceColor.Blue, SliceColor.Blue };
 		piece = gameLogic.EntityFactoryLogic.CreatePiece();
-		gameLogic.GameplayBoardLogic.SetPieceOnTile(piece.Id, 0, 2);
+		gameLogic.TileBoardLogic.SetPieceOnTile(piece.Id, 0, 2);
 		piece.Slices = new List<SliceColor> { SliceColor.Blue, SliceColor.Blue };
 	}
 }

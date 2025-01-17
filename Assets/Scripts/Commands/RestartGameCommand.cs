@@ -16,8 +16,8 @@ namespace Game.Commands
 		public void Execute(IGameLogicLocator gameLogic, IMessageBrokerService messageBrokerService)
 		{
 			gameLogic.PiecesLogic.Pieces.Clear();
-			gameLogic.GameplayBoardLogic.RefillBoard(gameLogic.EntityFactoryLogic.CreatePiece, gameLogic.RngLogic);
-			gameLogic.GameplayBoardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
+			gameLogic.TileBoardLogic.RefillBoard();
+			gameLogic.DeckSpawnerLogic.RefillDeck();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 			SetupTestData?.Invoke(gameLogic);

@@ -74,7 +74,7 @@
       "dependencies": {
         "com.gamelovers.dataextensions": "0.6.2"
       },
-      "hash": "ee0c43ea82daed8e12e242a399d02c0de439cae4"
+      "hash": "9cf72f85d107f7f292881bb47f05ddaa698f339f"
     },
     "com.gamelovers.statechart": {
       "version": "https://github.com/CoderGamester/com.gamelovers.statechart.git",
@@ -91,9 +91,17 @@
       "source": "git",
       "dependencies": {
         "com.unity.addressables": "1.22.0",
-        "com.cysharp.unitask": "2.5.10"
+        "com.cysharp.unitask": "2.5.10",
+        "com.unity.textmeshpro": "3.0.9"
       },
-      "hash": "cc8cccd73382f1cf4935a5cc95399a0eb8a39de8"
+      "hash": "97e607dee6f704870105a7ed165edf566520baff"
+    },
+    "com.gilzoide.safe-area-layout": {
+      "version": "https://github.com/gilzoide/unity-safe-area-layout.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "647b3ea0706fb3ff7684dc524c2fba9a62ec7452"
     },
     "com.google.external-dependency-manager": {
       "version": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm",
@@ -339,6 +347,14 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.textmeshpro": {
+      "version": "3.0.9",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
     },
     "com.unity.timeline": {
       "version": "1.8.7",

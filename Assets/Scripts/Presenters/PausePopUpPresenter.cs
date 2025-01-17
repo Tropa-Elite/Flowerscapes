@@ -13,7 +13,7 @@ namespace Game.Presenters
     /// - Allowing the user to restart the game
     /// - Allowing the user to return to the main menu and leave the game at the same state
     /// </summary>
-    public class PausePopUpPresenter : UiPresenterData<PausePopUpPresenter.PresenterData>
+    public class PausePopUpPresenter : UiPresenter<PausePopUpPresenter.PresenterData>
     {
         public struct PresenterData
         {

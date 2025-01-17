@@ -66,7 +66,7 @@ namespace Game.StateMachines
 		{
 			var data = new MainMenuPresenter.PresenterData
 			{
-				OnPlayClicked = () => _statechartTrigger(_play_Clicked_Event)
+				OnPlayButtonClicked = () => _statechartTrigger(_play_Clicked_Event)
 			};
 			
 			_uiService.OpenUiAsync<MainMenuPresenter, MainMenuPresenter.PresenterData>(data).Forget();
