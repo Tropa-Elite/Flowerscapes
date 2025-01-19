@@ -173,11 +173,11 @@ namespace Game.Logic.Client
 		public string QuitReason { get; private set; }
 
 		public AppLogic(
-			IGameDataProviderLocator gameDataProvider,
-			IConfigsProvider configsProvider,
-			IDataProvider dataProvider,
+			IGameLogicLocator gameLogic, 
+			IConfigsProvider configsProvider, 
+			IDataProvider dataProvider, 
 			ITimeService timeService) :
-			base(gameDataProvider, configsProvider, dataProvider, timeService)
+			base(gameLogic, configsProvider, dataProvider, timeService)
 		{
 		}
 

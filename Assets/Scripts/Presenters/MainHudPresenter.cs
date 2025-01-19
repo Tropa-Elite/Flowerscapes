@@ -3,6 +3,7 @@ using GameLovers.Services;
 using GameLovers.UiService;
 using Game.Ids;
 using Game.Logic;
+using Game.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,40 +15,48 @@ namespace Game.Presenters
 	/// This Presenter handles the Main HUD UI by:
 	/// - Showing the HUD visual status
 	/// </summary>
-	public class MainHudPresenter : UiPresenterData<MainHudPresenter.PresenterData>
+	public class MainHudPresenter : UiPresenter<MainHudPresenter.PresenterData>
 	{
 		public struct PresenterData
 		{
 			public UnityAction OnPauseClicked;
 		}
 		
-		[SerializeField] private TextMeshProUGUI _softCurrencyText;
-		[SerializeField] private TextMeshProUGUI _hardCurrencyText;
+		[SerializeField] private TextMeshProUGUI _currencyText;
+		[SerializeField] private TextMeshProUGUI _levelText;
+		[SerializeField] private TextMeshProUGUI _progressText;
+		[SerializeField] private Slider _progressSlider;
 		[SerializeField] private Button _pauseButton;
+		[SerializeField] private GameObject _rewardIcon;
+		[SerializeField] private GameObject _completedIcon;
 
 		private IGameDataProviderLocator _dataProvider;
 
 		private void Awake()
 		{
 			_dataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
+			_progressSlider.maxValue = Constants.Gameplay.Level_Max_Xp;
 
+			_dataProvider.GameLevelDataProvider.LevelXp.InvokeObserve(OnLevelXpUpdated);
 			_pauseButton.onClick.AddListener(() => Data.OnPauseClicked.Invoke());
+			_completedIcon.SetActive(_dataProvider.GameLevelDataProvider.IsLevelCompleted());
+			_rewardIcon.SetActive(!_completedIcon.activeSelf);
 		}
 
 		protected override void OnOpened()
 		{
-			_dataProvider.CurrencyDataProvider.Currencies.InvokeObserve(GameId.SoftCurrency, OnSoftCurrencyUpdated);
-			_dataProvider.CurrencyDataProvider.Currencies.InvokeObserve(GameId.HardCurrency, OnHardCurrencyUpdated);
+			_dataProvider.CurrencyDataProvider.Currencies.InvokeObserve(GameId.SoftCurrency, OnCurrencyUpdated);
 		}
 
-		private void OnSoftCurrencyUpdated(GameId currency, int amountBefore, int amountAfter, ObservableUpdateType updateType)
+		private void OnCurrencyUpdated(GameId currency, int amountBefore, int amountAfter, ObservableUpdateType updateType)
 		{
-			_softCurrencyText.text = $"SC: {amountAfter.ToString()}";
+			_currencyText.text = $"SC: {amountAfter.ToString()}";
 		}
 
-		private void OnHardCurrencyUpdated(GameId currency, int amountBefore, int amountAfter, ObservableUpdateType updateType)
+		private void OnLevelXpUpdated(int oldValue, int newValue)
 		{
-			_hardCurrencyText.text = $"HC: {amountAfter.ToString()}";
+			_progressText.text = $"{newValue}/{Constants.Gameplay.Level_Max_Xp}";
+			_progressSlider.value = newValue;
 		}
 	}
 }

@@ -29,8 +29,8 @@ namespace Game.Logic.Shared
 	/// <inheritdoc cref="IEntityFactoryLogic"/>
 	public class EntityFactoryLogic : AbstractBaseLogic<PlayerData>, IEntityFactoryLogic
 	{
-		private IGameLogicLocator _gameLogic;
-		private List<SliceColor> _randomColors;
+		private readonly IGameLogicLocator _gameLogic;
+		private readonly List<SliceColor> _randomColors;
 
 		/// <inheritdoc />
 		public UniqueId LastUniqueId => Data.UniqueIdCounter;

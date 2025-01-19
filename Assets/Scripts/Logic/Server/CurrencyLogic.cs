@@ -47,11 +47,11 @@ namespace Game.Logic.Shared
 		public IObservableDictionaryReader<GameId, int> Currencies => _currencies;
 
 		public CurrencyLogic(
-			IGameDataProviderLocator gameDataProvider,
+			IGameLogicLocator gameLogic,
 			IConfigsProvider configsProvider,
 			IDataProvider dataProvider,
 			ITimeService timeService) :
-			base(gameDataProvider, configsProvider, dataProvider, timeService)
+			base(gameLogic, configsProvider, dataProvider, timeService)
 		{
 		}
 
@@ -84,7 +84,7 @@ namespace Game.Logic.Shared
 			}
 			
 			var oldAmount = _currencies[currency];
-			var newAmount = oldAmount + amount;
+			var newAmount = oldAmount - amount;
 			
 			if (oldAmount - amount < 0)
 			{

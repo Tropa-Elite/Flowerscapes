@@ -224,7 +224,7 @@ namespace Game.ViewControllers
 				.SetEase(Ease.OutBack)
 				.OnComplete(() =>
 				{
-					_draggableView.enabled = _dataProvider.GameplayBoardDataProvider.PieceDeck.Contains(_uniqueId);
+					_draggableView.enabled = _dataProvider.DeckSpawnerDataProvider.Deck.Contains(_uniqueId);
 				});
 		}
 	}
