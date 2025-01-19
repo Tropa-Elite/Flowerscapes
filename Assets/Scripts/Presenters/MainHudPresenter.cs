@@ -35,6 +35,7 @@ namespace Game.Presenters
 		private void Awake()
 		{
 			_dataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
+			_progressSlider.maxValue = Constants.Gameplay.Level_Max_Xp;
 
 			_dataProvider.GameLevelDataProvider.LevelXp.InvokeObserve(OnLevelXpUpdated);
 			_pauseButton.onClick.AddListener(() => Data.OnPauseClicked.Invoke());
@@ -55,7 +56,7 @@ namespace Game.Presenters
 		private void OnLevelXpUpdated(int oldValue, int newValue)
 		{
 			_progressText.text = $"{newValue}/{Constants.Gameplay.Level_Max_Xp}";
-			_progressSlider.value = (float) newValue / Constants.Gameplay.Level_Max_Xp;
+			_progressSlider.value = newValue;
 		}
 	}
 }
