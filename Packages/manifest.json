@@ -11,7 +11,6 @@
     "com.gamelovers.services": "https://github.com/CoderGamester/Services.git",
     "com.gamelovers.statechart": "https://github.com/CoderGamester/com.gamelovers.statechart.git",
     "com.gamelovers.uiservice": "https://github.com/CoderGamester/com.gamelovers.uiservice.git",
-    "com.gilzoide.safe-area-layout": "https://github.com/gilzoide/unity-safe-area-layout.git",
     "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm",
     "com.unity.2d.animation": "10.1.4",
     "com.unity.2d.sprite": "1.0.0",

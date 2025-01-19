@@ -17,11 +17,11 @@ namespace Game.Presenters
 	/// - Showing the Main Menu button to start the game
 	/// - Showing game instructions and objectives about the game for the player to plat
 	/// </summary>
-	public class MainMenuPresenter : UiPresenter<MainMenuPresenter.PresenterData>
+	public class MainMenuPresenter : UiPresenterData<MainMenuPresenter.PresenterData>
 	{
 		public struct PresenterData
 		{
-			public UnityAction OnPlayButtonClicked;
+			public UnityAction OnPlayClicked;
 		}
 		
 		[SerializeField] private TextMeshProUGUI _version;
@@ -29,7 +29,7 @@ namespace Game.Presenters
 
 		private void Awake()
 		{
-			_playButton.onClick.AddListener(() => Data.OnPlayButtonClicked.Invoke());
+			_playButton.onClick.AddListener(() => Data.OnPlayClicked.Invoke());
 		}
 
 		private void Start()

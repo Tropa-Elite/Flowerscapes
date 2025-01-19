@@ -67,7 +67,7 @@ namespace Game.Controllers
 
 		public TileViewController OnPieceDrop(Vector2 screenPosition)
 		{
-			var dataProvider = _dataProvider.TileBoardDataProvider;
+			var dataProvider = _dataProvider.GameplayBoardDataProvider;
 			var tileOvering = GetTileFromPosition(screenPosition);
 			
 			_overingTile?.SetOveringState(false);
@@ -83,7 +83,7 @@ namespace Game.Controllers
 
 		public void OnPieceDrag(Vector2 screenPosition)
 		{
-			var dataProvider = _dataProvider.TileBoardDataProvider;
+			var dataProvider = _dataProvider.GameplayBoardDataProvider;
 			var tileOvering = GetTileFromPosition(screenPosition);
 			
 			// This means that there is already a piece where the player wants to drop it 
@@ -109,7 +109,7 @@ namespace Game.Controllers
 
 		private void OnPieceDroppedMessage(OnPieceDroppedMessage message)
 		{
-			if (_dataProvider.DeckSpawnerDataProvider.Deck.Count == Constants.Gameplay.Max_Deck_Pieces)
+			if (_dataProvider.GameplayBoardDataProvider.PieceDeck.Count == Constants.Gameplay.Max_Deck_Pieces)
 			{
 				SpawnDeckPieces();
 			}
@@ -210,11 +210,10 @@ namespace Game.Controllers
 		{
 			var distance = _deckViewController.RectTransform.rect.width / 4f;
 			var xPos = -distance * 2;
-			var deck = _dataProvider.DeckSpawnerDataProvider.Deck;
 
-			for (var i = 0; i < deck.Count; i++)
+			for (var i = 0; i < _dataProvider.GameplayBoardDataProvider.PieceDeck.Count; i++)
 			{
-				var pieceId = deck[i];
+				var pieceId = _dataProvider.GameplayBoardDataProvider.PieceDeck[i];
 				
 				xPos += distance;
 
@@ -237,7 +236,7 @@ namespace Game.Controllers
 
 			foreach (var tile in tiles)
 			{
-				if (_dataProvider.TileBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out var pieceData))
+				if (_dataProvider.GameplayBoardDataProvider.TryGetPieceFromTile(tile.Row, tile.Column, out var pieceData))
 				{
 					var piece = SpawnPiece(pieceData.Id);
 

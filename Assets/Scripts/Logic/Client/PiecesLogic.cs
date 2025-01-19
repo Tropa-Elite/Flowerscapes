@@ -1,4 +1,4 @@
-using Game.Data;
+﻿using Game.Data;
 using Game.Ids;
 using Game.Logic.Shared;
 using Game.Utils;
@@ -33,11 +33,11 @@ namespace Game.Logic.Client
 		IObservableResolverDictionary<UniqueId, IPieceData, ulong, PieceData> IPiecesLogic.Pieces => _pieces;
 
 		public PiecesLogic(
-			IGameLogicLocator gameLogic,
+			IGameDataProviderLocator gameDataProvider,
 			IConfigsProvider configsProvider,
 			IDataProvider dataProvider,
 			ITimeService timeService) :
-			base(gameLogic, configsProvider, dataProvider, timeService)
+			base(gameDataProvider, configsProvider, dataProvider, timeService)
 		{
 		}
 

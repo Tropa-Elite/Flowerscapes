@@ -19,9 +19,8 @@ namespace Game.Data
 			{ GameId.HardCurrency, 10 }
 		};
 
-		public int CurrentLevelXp = 0;
 		public Dictionary<ulong, PieceData> Pieces = new Dictionary<ulong, PieceData>();
-		public List<UniqueId> Deck = new List<UniqueId>(Constants.Gameplay.Max_Deck_Pieces);
+		public List<UniqueId> PieceDeck = new List<UniqueId>(Constants.Gameplay.Max_Deck_Pieces);
 		public TileData[,] Board = new TileData[Constants.Gameplay.Board_Rows, Constants.Gameplay.Board_Columns];
 	}
 }

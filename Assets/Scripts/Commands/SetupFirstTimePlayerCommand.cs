@@ -13,8 +13,8 @@ namespace Game.Commands
 		{
 			if (!gameLogic.AppLogic.IsFirstSession) return;
 
-			gameLogic.DeckSpawnerLogic.RefillDeck();
-			gameLogic.TileBoardLogic.RefillBoard();
+			gameLogic.GameplayBoardLogic.RefillPieceDeck(gameLogic.EntityFactoryLogic.CreatePiece);
+			gameLogic.GameplayBoardLogic.RefillBoard(gameLogic.EntityFactoryLogic.CreatePiece, gameLogic.RngLogic);
 		}
 	}
 }
