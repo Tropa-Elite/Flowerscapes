@@ -1,7 +1,5 @@
-﻿using System;
-using Game.Messages;
+﻿using Game.Messages;
 using Game.Services.Analytics;
-using GameAnalyticsSDK;
 using GameLovers.Services;
 using UnityEngine.Device;
 
@@ -73,7 +71,6 @@ namespace Game.Services
 		/// <inheritdoc />
 		public void Init()
 		{
-			GameAnalytics.Initialize();
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
 			SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using GameAnalyticsSDK;
 using UnityEngine;
 
 namespace Game.Services.Analytics
@@ -10,11 +9,11 @@ namespace Game.Services.Analytics
 	/// </summary>
 	public abstract class AnalyticsBase
 	{
-		protected IAnalyticsService _analyticsService;
+		protected IAnalyticsService AnalyticsService;
 		
 		protected AnalyticsBase(IAnalyticsService analyticsService)
 		{
-			_analyticsService = analyticsService;
+			AnalyticsService = analyticsService;
 		}
 
 		/// <summary>
@@ -32,7 +31,6 @@ namespace Game.Services.Analytics
 					PlayFabClientAPI.WritePlayerEvent(request, null, null);
 				}
 				*/
-				GameAnalytics.NewDesignEvent(eventName, parameters);
 
 				if (parameters == null || parameters.Count == 0)
 				{

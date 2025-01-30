@@ -21,15 +21,6 @@
       "dependencies": {},
       "hash": "f9fd769be7c634610f2a61aa914a1a55f34740e1"
     },
-    "com.gameanalytics.sdk": {
-      "version": "https://github.com/GameAnalytics/GA-SDK-UNITY.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.google.external-dependency-manager": "1.2.168"
-      },
-      "hash": "75366dcbd78c0c52e4c9b6133adfe40b9cbd8247"
-    },
     "com.gamelovers.assetsimporter": {
       "version": "https://github.com/CoderGamester/Unity-AssetsImporter.git",
       "depth": 0,
