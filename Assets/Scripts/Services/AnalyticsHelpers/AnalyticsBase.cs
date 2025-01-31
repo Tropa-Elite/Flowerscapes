@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using AptabaseSDK;
 using UnityEngine;
 
 namespace Game.Services.Analytics
@@ -31,6 +32,8 @@ namespace Game.Services.Analytics
 					PlayFabClientAPI.WritePlayerEvent(request, null, null);
 				}
 				*/
+				//ByteBrew.NewCustomEvent(eventName, parameters);
+				Aptabase.TrackEvent(eventName, parameters);
 
 				if (parameters == null || parameters.Count == 0)
 				{

@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "0095f839589ce5c9b12ef3c051abde7ee3d9885d"
     },
+    "com.aptabase": {
+      "version": "https://github.com/aptabase/aptabase-unity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "e27d3ae985586fadd455672ed73c90cdda556bca"
+    },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
       "depth": 0,
