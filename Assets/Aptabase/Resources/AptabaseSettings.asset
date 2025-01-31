@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28ac0264ec9bb43679a499d67037d3cf, type: 3}
   m_Name: AptabaseSettings
   m_EditorClassIdentifier: 
-  AppKey: A-EU-0000000000
+  AppKey: A-EU-7328292152
   SelfHostURL: 
   AppBuildNumber: 
   EnableOverride: 0

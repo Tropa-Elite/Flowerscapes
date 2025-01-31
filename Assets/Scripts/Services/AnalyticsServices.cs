@@ -1,6 +1,8 @@
-﻿using Game.Messages;
+﻿using AptabaseSDK;
+using Game.Messages;
 using Game.Services.Analytics;
 using GameLovers.Services;
+using mixpanel;
 using UnityEngine.Device;
 
 namespace Game.Services
@@ -41,6 +43,11 @@ namespace Game.Services
 		AnalyticsUI UiCalls { get; }
 		/// <inheritdoc cref="AnalyticsMainMenu"/>
 		AnalyticsMainMenu MainMenuCalls { get; }
+
+		/// <summary>
+		/// Flushes all the queued analytics events
+		/// </summary>
+		void FlushEvents();
 	}
 
 	/// <inheritdoc cref="IAnalyticsService" />
@@ -74,6 +81,14 @@ namespace Game.Services
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
 			SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
+		}
+		
+		/// <inheritdoc />
+		public void FlushEvents()
+		{
+			Unity.Services.Analytics.AnalyticsService.Instance.Flush();
+			Aptabase.Flush();
+			Mixpanel.Flush();
 		}
 
 		private void OnApplicationComplianceAcceptedMessage(ApplicationComplianceAcceptedMessage message)

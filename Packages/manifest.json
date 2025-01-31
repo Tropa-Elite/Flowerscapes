@@ -13,6 +13,7 @@
     "com.gamelovers.uiservice": "https://github.com/CoderGamester/com.gamelovers.uiservice.git",
     "com.gilzoide.safe-area-layout": "https://github.com/gilzoide/unity-safe-area-layout.git",
     "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm",
+    "com.mixpanel.unity": "https://github.com/mixpanel/mixpanel-unity.git#master",
     "com.unity.2d.animation": "10.1.4",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.connect.share": "4.2.3",

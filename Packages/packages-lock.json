@@ -108,6 +108,13 @@
       "dependencies": {},
       "hash": "3e97c8d815ca4a947ff93fd468e7b2e108b39150"
     },
+    "com.mixpanel.unity": {
+      "version": "https://github.com/mixpanel/mixpanel-unity.git#master",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ac4a070b10c38a2b172aeaa404e5cb9fd2fe49d4"
+    },
     "com.unity.2d.animation": {
       "version": "10.1.4",
       "depth": 0,
