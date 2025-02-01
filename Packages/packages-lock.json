@@ -12,7 +12,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "e27d3ae985586fadd455672ed73c90cdda556bca"
+      "hash": "67cac1c95c8a6f056e308752387dc5dc245267e4"
     },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
@@ -20,6 +20,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
+    },
+    "com.bytebrew.unitysdk": {
+      "version": "https://github.com/ByteBrewIO/ByteBrewUnitySDK.git?path=UPMPackage",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "39f8c8014064fa4d237ae22920e701b185041b58"
     },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
