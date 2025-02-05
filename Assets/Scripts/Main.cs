@@ -44,11 +44,11 @@ namespace Game
 			installer.Bind<GameUiService, IGameUiServiceInit, IGameUiService>(new GameUiService(new UiAssetLoader()));
 			installer.Bind<IPoolService>(new PoolService());
 			installer.Bind<ITickService>(new TickService());
-			installer.Bind<IAnalyticsService>(new AnalyticsService(installer.Resolve<IMessageBrokerService>()));
 			installer.Bind<ICoroutineService>(new CoroutineService());
 			installer.Bind<AssetResolverService, IAssetResolverService, IAssetAdderService>(new AssetResolverService());
 			installer.Bind<ConfigsProvider, IConfigsAdder, IConfigsProvider>(new ConfigsProvider());
 			installer.Bind<DataService, IDataService, IDataProvider>(new DataService());
+			installer.Bind<IAnalyticsService>(new AnalyticsService(installer.Resolve<IMessageBrokerService>(), installer.Resolve<IDataProvider>()));
 
 			var gameLogic = new GameLogicLocator(installer);
 

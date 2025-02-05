@@ -1,5 +1,4 @@
-﻿using AptabaseSDK;
-using ByteBrewSDK;
+using AptabaseSDK;
 using Game.Messages;
 using Game.Services.Analytics;
 using GameLovers.Services;
@@ -16,17 +15,16 @@ namespace Game.Services
 		public static readonly string SessionStart = "game_session_start";
 		public static readonly string SessionEnd = "game_session_end";
 		public static readonly string SessionHeartbeat = "session_heartbeat";
-		public static readonly string AdsData = "ads_data";
+		public static readonly string SessionAdsData = "session_ads_data";
 		public static readonly string LoadingStarted = "loading_started";
 		public static readonly string LoadingCompleted = "loading_completed";
 		public static readonly string PlayerLogin = "player_login";
 		public static readonly string PlayerAge = "player_age";
-		public static readonly string ScreenView = "screen_view";
-		public static readonly string ButtonAction = "button_action";
 		public static readonly string MainMenuEnter = "main_menu_enter";
-		public static readonly string MainMenuExit = "main_menu_exit";
 		public static readonly string Error = "error_log";
 		public static readonly string Purchase = "purchase";
+		public static readonly string LevelStart = "level_start";
+		public static readonly string LevelComplete = "level_complete";
 	}
 
 	/// <summary>
@@ -40,10 +38,10 @@ namespace Game.Services
 		AnalyticsEconomy EconomyCalls { get; }
 		/// <inheritdoc cref="AnalyticsErrors"/>
 		AnalyticsErrors ErrorsCalls { get; }
-		/// <inheritdoc cref="AnalyticsUI"/>
-		AnalyticsUI UiCalls { get; }
 		/// <inheritdoc cref="AnalyticsMainMenu"/>
 		AnalyticsMainMenu MainMenuCalls { get; }
+		/// <inheritdoc cref="AnalyticsGameplay"/>
+		AnalyticsGameplay GameplayCalls { get; }
 
 		/// <summary>
 		/// Flushes all the queued analytics events
@@ -61,16 +59,16 @@ namespace Game.Services
 		/// <inheritdoc />
 		public AnalyticsErrors ErrorsCalls { get; }
 		/// <inheritdoc />
-		public AnalyticsUI UiCalls { get; }
-		/// <inheritdoc />
 		public AnalyticsMainMenu MainMenuCalls { get; }
+		/// <inheritdoc />
+		public AnalyticsGameplay GameplayCalls { get; }
 
-		public AnalyticsService(IMessageBrokerService messageBrokerService)
+		public AnalyticsService(IMessageBrokerService messageBrokerService, IDataProvider dataProvider)
 		{
-			SessionCalls = new AnalyticsSession(this);
+			SessionCalls = new AnalyticsSession(this, dataProvider);
+			GameplayCalls = new AnalyticsGameplay(this);
 			EconomyCalls = new AnalyticsEconomy(this);
 			ErrorsCalls = new AnalyticsErrors(this);
-			UiCalls = new AnalyticsUI(this);
 			MainMenuCalls = new AnalyticsMainMenu(this);
 			
 			messageBrokerService.Subscribe<ApplicationComplianceAcceptedMessage>(OnApplicationComplianceAcceptedMessage);
@@ -81,7 +79,7 @@ namespace Game.Services
 		{
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
-			SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
+			//SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
 		}
 		
 		/// <inheritdoc />

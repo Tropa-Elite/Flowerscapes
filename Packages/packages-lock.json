@@ -8,11 +8,10 @@
       "hash": "0095f839589ce5c9b12ef3c051abde7ee3d9885d"
     },
     "com.aptabase": {
-      "version": "https://github.com/aptabase/aptabase-unity.git",
+      "version": "file:/Users/bugs/Desktop/aptabase-unity",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "67cac1c95c8a6f056e308752387dc5dc245267e4"
+      "source": "local",
+      "dependencies": {}
     },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
@@ -22,11 +21,11 @@
       "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
     },
     "com.bytebrew.unitysdk": {
-      "version": "https://github.com/ByteBrewIO/ByteBrewUnitySDK.git?path=UPMPackage",
+      "version": "https://github.com/CoderGamester/ByteBrewUnitySDK.git?path=UPMPackage",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "39f8c8014064fa4d237ae22920e701b185041b58"
+      "hash": "2168505e05d7cb0069db13965f696026c0cbd10b"
     },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
@@ -247,10 +246,10 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
       },
-      "hash": "811dead825698b69e3b51b70091893a86dd1327f"
+      "hash": "6161accf3e7beab96341813913e714c7e2fb5c5d"
     },
     "com.unity.inputsystem": {
-      "version": "1.11.2",
+      "version": "1.12.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -322,7 +321,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.core": {
-      "version": "1.13.0",
+      "version": "1.14.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
