@@ -97,12 +97,12 @@ namespace Game.StateMachines
 
 		private void MenuLoadingStart()
 		{
-			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.MainMenuLoading);
+			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.MainMenuLoading);
 		}
 
 		private void MenuLoadingEnd()
 		{
-			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.MainMenuLoading);
+			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.MainMenuLoading);
 		}
 	}
 }
