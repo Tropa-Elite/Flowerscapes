@@ -94,7 +94,7 @@ namespace Game.Services.Analytics
 				}
 				else if (pair.Value is float or double)
 				{
-					Mixpanel.Track(eventName, pair.Key, new Value((double) pair.Value));
+					Mixpanel.Track(eventName, pair.Key, new Value(Convert.ToDouble(pair.Value)));
 				}
 				else if (pair.Value is bool)
 				{

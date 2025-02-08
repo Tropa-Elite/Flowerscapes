@@ -3,7 +3,6 @@ using Game.Messages;
 using Game.Services.Analytics;
 using GameLovers.Services;
 using mixpanel;
-using UnityEngine.Device;
 
 namespace Game.Services
 {

@@ -41,7 +41,7 @@ namespace Game.Services.Analytics
 			}
 		}
 
-		private Dictionary<string, object> StartData => new Dictionary<string, object>
+		private static Dictionary<string, object> StartData => new Dictionary<string, object>
 		{
 			{ "client_version", VersionServices.VersionInternal },
 			{ "platform", Application.platform.ToString() },
@@ -49,12 +49,10 @@ namespace Game.Services.Analytics
 			{ "tablet", IsTablet },
 			{ "os", SystemInfo.operatingSystem },
 			{ "language", Application.systemLanguage.ToString() },
-			{ "session_count", _dataProvider.GetData<AppData>().SessionCount },
-			{ "days_since_install", (DateTime.UtcNow - _dataProvider.GetData<AppData>().FirstLoginTime).Days },
 #if UNITY_WEBGL && !UNITY_EDITOR
 			{ "url_source", new Uri(Application.absoluteURL).Host },
 #elif UNITY_IOS
-			{"ios_att_enabled", UnityEngine.iOS.Device.advertisingTrackingEnabled},
+			{ "ios_att_enabled", UnityEngine.iOS.Device.advertisingTrackingEnabled},
 #endif
 		};
 
@@ -172,9 +170,12 @@ namespace Game.Services.Analytics
 		{
 			UnityEngine.CrashReportHandler.CrashReportHandler.SetUserMetadata("player_id", id);
 
+			var appData = _dataProvider.GetData<AppData>();
 			var loginData = StartData;
 			
-			loginData.Add("user_id", id);
+			loginData.Add("player_id", id);
+			loginData.Add("session_count", appData.SessionCount);
+			loginData.Add("days_since_install", (DateTime.UtcNow - appData.FirstLoginTime).Days);
 			
 			LogEvent(AnalyticsEvents.PlayerLogin, loginData);
 		}
