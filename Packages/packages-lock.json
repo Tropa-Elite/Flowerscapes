@@ -8,10 +8,11 @@
       "hash": "0095f839589ce5c9b12ef3c051abde7ee3d9885d"
     },
     "com.aptabase": {
-      "version": "file:/Users/bugs/Desktop/aptabase-unity",
+      "version": "https://github.com/CoderGamester/aptabase-unity.git",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "6877da2dad2c74dd4e57c8108676690b12bdeec0"
     },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
