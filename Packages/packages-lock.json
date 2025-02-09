@@ -12,7 +12,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "6877da2dad2c74dd4e57c8108676690b12bdeec0"
+      "hash": "72c8ec9c1834b56d90273c5fce3649f089f3a29a"
     },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
