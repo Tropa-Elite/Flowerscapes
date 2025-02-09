@@ -264,8 +264,10 @@ namespace Game.Controllers
 			
 			foreach (var id in pieces)
 			{
-				DespawnPiece(_spawnedPieces[id]);
+				_services.PoolService.Despawn(_spawnedPieces[id]);
 			}
+			
+			_spawnedPieces.Clear();
 		}
 
 		private TileViewController GetTileFromPosition(Vector2 screenPosition)

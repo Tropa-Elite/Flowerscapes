@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Game.Ids;
 using Game.Logic;
 using Game.Messages;
@@ -7,6 +7,7 @@ using Game.Services;
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
 using System;
+using Game.Services.Analytics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -42,7 +43,9 @@ namespace Game.StateMachines
 			initial.Transition().Target(menuLoading);
 			initial.OnExit(SubscribeEvents);
 
+			menuLoading.OnEnter(MenuLoadingStart);
 			menuLoading.WaitingFor(LoadMenuAssets).Target(mainScreen);
+			menuLoading.OnExit(MenuLoadingEnd);
 
 			mainScreen.OnEnter(OpenMainScreenUi);
 			mainScreen.Event(_play_Clicked_Event).Target(final);
@@ -68,7 +71,8 @@ namespace Game.StateMachines
 			{
 				OnPlayButtonClicked = () => _statechartTrigger(_play_Clicked_Event)
 			};
-			
+
+			_services.AnalyticsService.MainMenuCalls.MainMenuEnter();
 			_uiService.OpenUiAsync<MainMenuPresenter, MainMenuPresenter.PresenterData>(data).Forget();
 		}
 
@@ -89,6 +93,16 @@ namespace Game.StateMachines
 			_uiService.UnloadGameUiSet(UiSetId.MenuUi);
 			_services.AssetResolverService.UnloadSceneAsync(SceneId.Menu).Forget();
 			Resources.UnloadUnusedAssets();
+		}
+
+		private void MenuLoadingStart()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.MainMenuLoading);
+		}
+
+		private void MenuLoadingEnd()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.MainMenuLoading);
 		}
 	}
 }

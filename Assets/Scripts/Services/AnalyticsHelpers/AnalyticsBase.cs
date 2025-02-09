@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System;
-using GameAnalyticsSDK;
+using AptabaseSDK;
+using ByteBrewSDK;
+using mixpanel;
 using UnityEngine;
 
 namespace Game.Services.Analytics
@@ -10,11 +12,11 @@ namespace Game.Services.Analytics
 	/// </summary>
 	public abstract class AnalyticsBase
 	{
-		protected IAnalyticsService _analyticsService;
+		protected IAnalyticsService AnalyticsService;
 		
 		protected AnalyticsBase(IAnalyticsService analyticsService)
 		{
-			_analyticsService = analyticsService;
+			AnalyticsService = analyticsService;
 		}
 
 		/// <summary>
@@ -32,27 +34,88 @@ namespace Game.Services.Analytics
 					PlayFabClientAPI.WritePlayerEvent(request, null, null);
 				}
 				*/
-				GameAnalytics.NewDesignEvent(eventName, parameters);
-
-				if (parameters == null || parameters.Count == 0)
-				{
-					// Unity
-					UnityEngine.Analytics.Analytics.CustomEvent(eventName);
-					return;
-				}
-
-				if (parameters.Count > 10)
-				{
-					Debug.LogError($"The event {eventName} has {parameters.Count} and the max parameters for unity is 10");
-				}
-
-				// Unity
-				UnityEngine.Analytics.Analytics.CustomEvent(eventName, parameters);
+				Aptabase.TrackEvent(eventName, parameters);
+				MixpanelTrack(eventName, parameters);
+				UnityAnalyticsTrack(eventName, parameters);
+				ByteBrewTrack(eventName, parameters);
 			}
 			catch (Exception e)
 			{
 				Debug.LogError("Error while sending analytics: " + e.Message);
 				Debug.LogException(e);
+			}
+		}
+		
+		private void ByteBrewTrack(string eventName, Dictionary<string, object> parameters)
+		{
+			if (parameters == null || parameters.Count == 0)
+			{
+				ByteBrew.NewCustomEvent(eventName);
+				return;
+			}
+			
+			var parsedValueStr = "";
+			foreach(var keyPair in parameters)
+			{
+				parsedValueStr += String.Format("{0}={1};", keyPair.Key, keyPair.Value);
+			}
+			ByteBrew.NewCustomEvent(eventName, parsedValueStr);
+		}
+
+		private void UnityAnalyticsTrack(string eventName, Dictionary<string, object> parameters)
+		{
+			if (parameters == null || parameters.Count == 0)
+			{
+				UnityEngine.Analytics.Analytics.CustomEvent(eventName);
+				return;
+			}
+			
+			if (parameters.Count > 10)
+			{
+				Debug.LogError($"The event {eventName} has {parameters.Count} and the max parameters for unity is 10");
+			}
+			
+			UnityEngine.Analytics.Analytics.CustomEvent(eventName, parameters);
+		}
+
+		private void MixpanelTrack(string eventName, Dictionary<string, object> parameters)
+		{
+			if (parameters == null || parameters.Count == 0)
+			{
+				Mixpanel.Track(eventName);
+				return;
+			}
+
+			foreach (var pair in parameters)
+			{
+				if (pair.Value is int)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((int) pair.Value));
+				}
+				else if (pair.Value is float or double)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value(Convert.ToDouble(pair.Value)));
+				}
+				else if (pair.Value is bool)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((bool) pair.Value));
+				}
+				else if (pair.Value is string)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((string) pair.Value));
+				}
+				else if (pair.Value is DateTime)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((DateTime) pair.Value));
+				}
+				else if (pair.Value is Vector2)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((Vector2) pair.Value));
+				}
+				else if (pair.Value is Vector3)
+				{
+					Mixpanel.Track(eventName, pair.Key, new Value((Vector3) pair.Value));
+				}
 			}
 		}
 	}

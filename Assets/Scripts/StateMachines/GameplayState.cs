@@ -12,6 +12,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using Game.Utils;
 using Game.Controllers;
+using Game.Services.Analytics;
 
 namespace Game.StateMachines
 {
@@ -60,7 +61,9 @@ namespace Game.StateMachines
 			initial.Transition().Target(gameplayLoading);
 			initial.OnExit(SubscribeEvents);
 
+			gameplayLoading.OnEnter(GameplayLoadingStart);
 			gameplayLoading.WaitingFor(LoadGameplayAssets).Target(gameStateCheck);
+			gameplayLoading.OnExit(GameplayLoadingEnd);
 
 			gameStateCheck.OnEnter(GameInit);
 			gameStateCheck.Transition().Condition(IsGameOver).Target(gameOver);
@@ -110,6 +113,7 @@ namespace Game.StateMachines
 
 		private void OnGameCompleteMessage(OnGameCompleteMessage obj)
 		{
+			_services.AnalyticsService.GameplayCalls.LevelComplete(1);
 			_statechartTrigger(Game_Win_Event);
 		}
 
@@ -120,6 +124,7 @@ namespace Game.StateMachines
 
 		private void GameInit()
 		{
+			_services.AnalyticsService.GameplayCalls.LevelStart(1);
 			_piecesController.Init();
 			_services.MessageBrokerService.Publish(new OnGameInitMessage());
 		}
@@ -199,6 +204,16 @@ namespace Game.StateMachines
 			_uiService.UnloadGameUiSet(UiSetId.GameplayUi);
 			_services.AssetResolverService.UnloadSceneAsync(SceneId.Game).Forget();
 			Resources.UnloadUnusedAssets();
+		}
+
+		private void GameplayLoadingStart()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.GameplayLoading);
+		}
+
+		private void GameplayLoadingEnd()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.GameplayLoading);
 		}
 	}
 }

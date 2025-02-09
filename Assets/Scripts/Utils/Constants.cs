@@ -46,7 +46,7 @@ namespace Game.Utils
 			public const int Board_Columns = 4;
 			public const int Max_Piece_Slices = 6;
 			public const int Max_Deck_Pieces = 3;
-			public const int Level_Max_Xp = 100;
+			public const int Level_Max_Xp = 20;
 			public const int Level_Piece_Xp = 1;
 			public const float Piece_Desktop_Speed = 1f;
 			public const float Piece_Mobile_Speed = 1.5f;

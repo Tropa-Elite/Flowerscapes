@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using GameAnalyticsSDK;
+using Game.Data;
 using GameLovers;
+using GameLovers.Services;
 using UnityEngine;
 using UnityEngine.Analytics;
 
@@ -12,7 +13,11 @@ namespace Game.Services.Analytics
 	/// </summary>
 	public class AnalyticsSession : AnalyticsBase
 	{
+		public const string MainMenuLoading = "main_menu_loading";
+		public const string GameplayLoading = "gameplay_loading";
+
 		private float _loadingStarted;
+		private IDataProvider _dataProvider;
 
 		private static bool IsTablet
 		{
@@ -42,20 +47,18 @@ namespace Game.Services.Analytics
 			{ "platform", Application.platform.ToString() },
 			{ "device", SystemInfo.deviceModel },
 			{ "tablet", IsTablet },
-#if UNITY_IOS
-				{"ios_generation", UnityEngine.iOS.Device.generation.ToString()},
-				{"ios_att_enabled", UnityEngine.iOS.Device.advertisingTrackingEnabled},
-#else
-			{ "cpu", SystemInfo.processorType },
-			{ "gpu_api", SystemInfo.graphicsDeviceType.ToString() },
-#endif
-			{ "language", Application.systemLanguage.ToString() },
 			{ "os", SystemInfo.operatingSystem },
-			//{"memory_readable", SRFileUtil.GetBytesReadable((long) SystemInfo.systemMemorySize*1024*1024)},
+			{ "language", Application.systemLanguage.ToString() },
+#if UNITY_WEBGL && !UNITY_EDITOR
+			{ "url_source", new Uri(Application.absoluteURL).Host },
+#elif UNITY_IOS
+			{ "ios_att_enabled", UnityEngine.iOS.Device.advertisingTrackingEnabled},
+#endif
 		};
 
-		public AnalyticsSession(IAnalyticsService analyticsService) : base(analyticsService)
+		public AnalyticsSession(IAnalyticsService analyticsService, IDataProvider dataProvider) : base(analyticsService)
 		{
+			_dataProvider = dataProvider;
 		}
 
 		/// <summary>
@@ -63,16 +66,6 @@ namespace Game.Services.Analytics
 		/// </summary>
 		public void SessionStart()
 		{
-			var loginData = StartData;
-			// ReSharper disable once RedundantAssignment
-			var source = Application.platform.ToString();
-			
-#if UNITY_WEBGL && !UNITY_EDITOR
-			source = new Uri(Application.absoluteURL).Host;
-#endif
-			
-			loginData.Add("session_source", source);
-			
 			LogEvent(AnalyticsEvents.SessionStart, StartData);
 		}
 
@@ -113,7 +106,7 @@ namespace Game.Services.Analytics
 					{"vendor_id", SystemInfo.deviceUniqueIdentifier},
 					{"session_id", AnalyticsSessionInfo.sessionId }
 				};
-				LogEvent(AnalyticsEvents.AdsData, dic);
+				LogEvent(AnalyticsEvents.SessionAdsData, dic);
 			});
 			
 			// If the async call fails we try another way
@@ -130,7 +123,7 @@ namespace Game.Services.Analytics
 					{"vendor_id", SystemInfo.deviceUniqueIdentifier},
 					{"session_id", AnalyticsSessionInfo.sessionId }
 				};
-				LogEvent(AnalyticsEvents.AdsData, dic);
+				LogEvent(AnalyticsEvents.SessionAdsData, dic);
 			}
 
 			_loadingStarted = Time.realtimeSinceStartup;
@@ -153,12 +146,11 @@ namespace Game.Services.Analytics
 		}
 
 		/// <summary>
-		/// Logs the end of the given <paramref name="loadingAction"/>
+		/// Logs the end of the given <paramref name="scene"/>
 		/// </summary>
 		public void LoadingCompleted(string scene)
 		{
 			var loadingTime = Time.realtimeSinceStartup - _loadingStarted;
-
 			var data = new Dictionary<string, object>
 			{
 				{"boot_time", Time.realtimeSinceStartup},
@@ -178,9 +170,12 @@ namespace Game.Services.Analytics
 		{
 			UnityEngine.CrashReportHandler.CrashReportHandler.SetUserMetadata("player_id", id);
 
+			var appData = _dataProvider.GetData<AppData>();
 			var loginData = StartData;
 			
-			loginData.Add("user_id", id);
+			loginData.Add("player_id", id);
+			loginData.Add("session_count", appData.SessionCount);
+			loginData.Add("days_since_install", (DateTime.UtcNow - appData.FirstLoginTime).Days);
 			
 			LogEvent(AnalyticsEvents.PlayerLogin, loginData);
 		}
@@ -190,7 +185,12 @@ namespace Game.Services.Analytics
 		/// </summary>
 		public void PlayerAge(int age)
 		{
-			LogEvent(AnalyticsEvents.PlayerLogin, new Dictionary<string, object> { {"age", age } });
+			var data = new Dictionary<string, object>
+			{
+				{"age", age },
+			};
+			
+			LogEvent(AnalyticsEvents.PlayerAge, data);
 		}
 
 #if UNITY_ANDROID

@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "0095f839589ce5c9b12ef3c051abde7ee3d9885d"
     },
+    "com.aptabase": {
+      "version": "https://github.com/CoderGamester/aptabase-unity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "72c8ec9c1834b56d90273c5fce3649f089f3a29a"
+    },
     "com.bgtools.playerprefseditor": {
       "version": "https://github.com/Dysman/bgTools-playerPrefsEditor.git#upm",
       "depth": 0,
@@ -14,21 +21,19 @@
       "dependencies": {},
       "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
     },
+    "com.bytebrew.unitysdk": {
+      "version": "https://github.com/CoderGamester/ByteBrewUnitySDK.git?path=UPMPackage",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "2168505e05d7cb0069db13965f696026c0cbd10b"
+    },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
       "source": "git",
       "dependencies": {},
       "hash": "f9fd769be7c634610f2a61aa914a1a55f34740e1"
-    },
-    "com.gameanalytics.sdk": {
-      "version": "https://github.com/GameAnalytics/GA-SDK-UNITY.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.google.external-dependency-manager": "1.2.168"
-      },
-      "hash": "75366dcbd78c0c52e4c9b6133adfe40b9cbd8247"
     },
     "com.gamelovers.assetsimporter": {
       "version": "https://github.com/CoderGamester/Unity-AssetsImporter.git",
@@ -109,6 +114,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "3e97c8d815ca4a947ff93fd468e7b2e108b39150"
+    },
+    "com.mixpanel.unity": {
+      "version": "https://github.com/mixpanel/mixpanel-unity.git#master",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ac4a070b10c38a2b172aeaa404e5cb9fd2fe49d4"
     },
     "com.unity.2d.animation": {
       "version": "10.1.4",
@@ -235,10 +247,10 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
       },
-      "hash": "811dead825698b69e3b51b70091893a86dd1327f"
+      "hash": "6161accf3e7beab96341813913e714c7e2fb5c5d"
     },
     "com.unity.inputsystem": {
-      "version": "1.11.2",
+      "version": "1.12.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -310,7 +322,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.core": {
-      "version": "1.13.0",
+      "version": "1.14.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
