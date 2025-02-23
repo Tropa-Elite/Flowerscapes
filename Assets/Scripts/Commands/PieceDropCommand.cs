@@ -36,7 +36,7 @@ namespace Game.Commands
 				throw new LogicException($"There is already a piece on tile ({_row}, {_column})");
 			}
 
-			gameLogic.DeckSpawnerLogic.Deck.Remove(_pieceId);
+			gameLogic.DeckSpawnerLogic.Remove(_pieceId);
 			boardLogic.SetPieceOnTile(_pieceId, _row, _column);
 			boardLogic.ActivateTile(_row, _column, out var tiles, out var transfers);
 			ProcessCompleted(gameLogic, tiles);

@@ -224,7 +224,7 @@ namespace Game.Logic.Client
 			
 			var amount = GameLogic.PiecesLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color.Key);
 			
-			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color.Key, amount);
+			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color.Key, amount, centerPiece.IsComplete);
 
 			return true;
 		}
@@ -245,7 +245,7 @@ namespace Game.Logic.Client
 			
 			var amount = GameLogic.PiecesLogic.TransferSlices(centerTile.PieceId, nextTile.PieceId, color);
 			
-			transfer = new PieceTransferData(centerTile.Id, nextTile.Id, centerTile.PieceId, nextPiece.Id, color, amount);
+			transfer = new PieceTransferData(centerTile.Id, nextTile.Id, centerTile.PieceId, nextPiece.Id, color, amount, nextPiece.IsComplete);
 			
 			if (!nextPiece.IsFull)
 			{
@@ -255,6 +255,8 @@ namespace Game.Logic.Client
 			return true;
 		}
 
+		// A cache is used to store the slices that were transfered from the center to next tile pieces.
+		// This is important for the sorting algorithm in case of some other next tile piece would need this cache slices to be completed
 		private bool TryTransferToCenterFromCache(ITileData centerTile, ITileData nextTile, 
 			Dictionary<SliceColor, IPieceData> slicesCache, SliceColor color, out PieceTransferData transfer)
 		{
@@ -271,7 +273,7 @@ namespace Game.Logic.Client
 			var maxSlices = cachePiece.SlicesFreeSpace - centerColorAmount;
 			var amount = GameLogic.PiecesLogic.TransferSlices(nextTile.PieceId, centerTile.PieceId, color, maxSlices);
 			
-			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color, amount);
+			transfer = new PieceTransferData(nextTile.Id, centerTile.Id, nextTile.PieceId, centerTile.PieceId, color, amount, centerPiece.IsComplete);
 
 			if (centerPiece.IsFull || cachePiece.SlicesFreeSpace == centerColorAmount + amount)
 			{

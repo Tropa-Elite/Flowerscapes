@@ -10,9 +10,10 @@ namespace Game.Data
         public readonly UniqueId TargetPieceId;
         public readonly SliceColor SliceColor;
         public readonly int SlicesAmount;
+        public readonly bool PieceCompleted;
         
         public PieceTransferData(int originTileId, int targetTileId, UniqueId originPieceId, UniqueId targetPieceId,
-            SliceColor color, int slicesAmount)
+            SliceColor color, int slicesAmount, bool pieceCompleted)
         {
             OriginTileId = originTileId;
             TargetTileId = targetTileId;
@@ -20,6 +21,7 @@ namespace Game.Data
             TargetPieceId = targetPieceId;
             SliceColor = color;
             SlicesAmount = slicesAmount;
+            PieceCompleted = pieceCompleted;
         }
     }
 }

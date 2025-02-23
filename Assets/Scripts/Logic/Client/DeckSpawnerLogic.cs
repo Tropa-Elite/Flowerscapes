@@ -10,7 +10,7 @@ using System;
 namespace Game.Logic.Client
 {
 	/// <summary>
-	/// This logic provides the necessary behaviour to manage the player's board during a gameplay session
+	/// This logic provides the necessary behaviour to manage the player's piece deck board during a gameplay session
 	/// </summary>
 	public interface IDeckSpawnerDataProvider
 	{
@@ -20,9 +20,8 @@ namespace Game.Logic.Client
 	/// <inheritdoc />
 	public interface IDeckSpawnerLogic : IDeckSpawnerDataProvider
 	{
-		new IObservableList<UniqueId> Deck { get; }
-
 		void RefillDeck();
+		void Remove(UniqueId pieceId);
 	}
 
 	/// <inheritdoc cref="ITileBoardLogic"/>
@@ -31,9 +30,7 @@ namespace Game.Logic.Client
 		private IObservableList<UniqueId> _deck;
 
 		/// <inheritdoc />
-		public IObservableList<UniqueId> Deck => _deck;
-		/// <inheritdoc />
-		IObservableListReader<UniqueId> IDeckSpawnerDataProvider.Deck => _deck;
+		public IObservableListReader<UniqueId> Deck => _deck;
 
 		public DeckSpawnerLogic(
 			IGameLogicLocator gameLogic, 
@@ -53,12 +50,25 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public void RefillDeck()
 		{
-			Deck.Clear();
+			_deck.Clear();
 
-			for (var i = 0; i < Constants.Gameplay.Max_Deck_Pieces; i++)
+			for (var i = 0; i < _deck.Count; i++)
 			{
-				Deck.Add(GameLogic.EntityFactoryLogic.CreatePiece().Id);
+				_deck.Add(GameLogic.EntityFactoryLogic.CreatePiece().Id);
 			}
+		}
+
+		/// <inheritdoc />
+		public void Remove(UniqueId pieceId)
+		{
+			var index = _deck.IndexOf(pieceId);
+			
+			if (index < 0)
+			{
+				throw new LogicException($"There isn't any piece with id {pieceId} in the deck");
+			}
+			
+			_deck[index] = UniqueId.Invalid;
 		}
 	}
 }

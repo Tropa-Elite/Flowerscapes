@@ -33,15 +33,15 @@ namespace Game.StateMachines
 		private readonly IGameServicesLocator _services;
 		private readonly IGameDataProviderLocator _gameDataProvider;
 		private readonly Action<IStatechartEvent> _statechartTrigger;
-		private readonly PiecesController _piecesController;
+		private readonly ISetupPiecesController _piecesController;
 
 		public GameplayState(IInstaller installer, Action<IStatechartEvent> statechartTrigger)
 		{
 			_gameDataProvider = installer.Resolve<IGameDataProviderLocator>();
 			_services = installer.Resolve<IGameServicesLocator>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
+			_piecesController = installer.Resolve<ISetupPiecesController>();
 			_statechartTrigger = statechartTrigger;
-			_piecesController = new PiecesController(_services, _gameDataProvider);
 		}
 
 		/// <summary>
@@ -125,7 +125,7 @@ namespace Game.StateMachines
 		private void GameInit()
 		{
 			_services.AnalyticsService.GameplayCalls.LevelStart(1);
-			_piecesController.Init();
+			_piecesController.Start();
 			_services.MessageBrokerService.Publish(new OnGameInitMessage());
 		}
 
@@ -195,7 +195,7 @@ namespace Game.StateMachines
 			await UniTask.WhenAll(
 				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
 				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
-			await _piecesController.SetupAsync();
+			await _piecesController.InitAsync();
 		}
 
 		private void UnloadAssets()

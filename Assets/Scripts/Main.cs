@@ -1,4 +1,4 @@
-﻿using Game.Logic;
+using Game.Logic;
 using Game.Services;
 using Game.StateMachines;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.UI;
 using System.Collections;
 using Game.Messages;
 using Cysharp.Threading.Tasks;
+using Game.Controllers;
 using GameLovers.Services;
 using GameLovers;
 using GameLovers.UiService;
@@ -57,8 +58,9 @@ namespace Game
 			installer.Bind<ICommandService<IGameLogicLocator>>(new CommandService<IGameLogicLocator>(gameLogic, installer.Resolve<IMessageBrokerService>()));
 
 			var gameServices = new GameServicesLocator(installer);
-
+			
 			installer.Bind<IGameServicesLocator>(gameServices);
+			installer.Bind<PiecesController, ISetupPiecesController, IPiecesController>(new PiecesController(gameServices, gameLogic));
 			MainInstaller.Bind<IGameDataProviderLocator>(gameLogic);
 			MainInstaller.Bind<IGameServicesLocator>(gameServices);
 

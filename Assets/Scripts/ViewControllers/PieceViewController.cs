@@ -88,19 +88,7 @@ namespace Game.ViewControllers
 				return;
 			}
 
-			var tile = _controller.OnPieceDrop(RectTransform.TransformPoint(RectTransform.rect.center));
-			
-			if (tile.IsValid())
-			{
-				_draggableView.enabled = false;
-				
-				MoveIntoTile(tile);
-				_services.CommandService.ExecuteCommand(new PieceDropCommand(Id, tile.Row, tile.Column));
-			}
-			else
-			{
-				_draggableView.ResetPosition();
-			}
+			_controller.OnPieceDrop(this, RectTransform.TransformPoint(RectTransform.rect.center));
 		}
 
 		/// <inheritdoc />
@@ -165,6 +153,7 @@ namespace Game.ViewControllers
 			RectTransform.SetAsLastSibling();
 			DraggableView.ResetPivot();
 
+			DraggableView.enabled = false;
 			RectTransform.anchoredPosition = Vector3.zero;
 		}
 		

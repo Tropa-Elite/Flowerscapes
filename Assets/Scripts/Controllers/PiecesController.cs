@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -20,12 +20,21 @@ namespace Game.Controllers
 {
 	public interface IPiecesController
 	{
-		TileViewController OnPieceDrop(Vector2 screenPosition);
+		bool TryGetPiece(UniqueId id, out PieceViewController piece);
+		bool OnPieceDrop(PieceViewController piece, Vector2 screenPosition);
+		bool OnPieceDrop(PieceViewController piece, Vector2 screenPosition, out PieceDropCommand command);
 		void OnPieceDrag(Vector2 screenPosition);
 		void DespawnPiece(PieceViewController piece);
 	}
+
+	public interface ISetupPiecesController : IPiecesController
+	{
+		UniTask InitAsync();
+		void Start();
+		void CleanUp();
+	}
 	
-	public class PiecesController : IPiecesController
+	public class PiecesController : ISetupPiecesController
 	{
 		private readonly Dictionary<UniqueId, PieceViewController> _spawnedPieces = new(new UniqueIdKeyComparer());
 		private readonly IGameServicesLocator _services;
@@ -40,7 +49,7 @@ namespace Game.Controllers
 			_dataProvider = dataProvider;
 		}
 
-		public async UniTask SetupAsync()
+		public async UniTask InitAsync()
 		{
 			_deckViewController = Object.FindFirstObjectByType<PieceDeckViewController>();
 
@@ -49,7 +58,7 @@ namespace Game.Controllers
 			await CreatePools();
 		}
 
-		public void Init()
+		public void Start()
 		{
 			CleanUpPieces();
 			SpawnDeckPieces();
@@ -65,20 +74,45 @@ namespace Game.Controllers
 			_deckViewController = null;
 		}
 
-		public TileViewController OnPieceDrop(Vector2 screenPosition)
+		public bool TryGetPiece(UniqueId id, out PieceViewController piece)
+		{
+			return _spawnedPieces.TryGetValue(id, out piece);
+		}
+
+		public bool OnPieceDrop(PieceViewController piece, Vector2 screenPosition)
+		{
+			var result = OnPieceDrop(piece, screenPosition, out var command);
+
+			if (result)
+			{
+				_services.CommandService.ExecuteCommand(command);
+			}
+
+			return result;
+		}
+
+		public bool OnPieceDrop(PieceViewController piece, Vector2 screenPosition, out PieceDropCommand command)
 		{
 			var dataProvider = _dataProvider.TileBoardDataProvider;
 			var tileOvering = GetTileFromPosition(screenPosition);
-			
+
 			_overingTile?.SetOveringState(false);
 
 			// This means that it didn't drop over an empty tile or there is already a piece in it
 			if (tileOvering == null || dataProvider.TryGetPieceFromTile(tileOvering.Row, tileOvering.Column, out _))
 			{
-				return null;
-			}
+				piece.DraggableView.ResetPosition();
+				
+				command = default;
 
-			return tileOvering;
+				return false;
+			}
+				
+			piece.MoveIntoTile(tileOvering);
+			
+			command = new PieceDropCommand(piece.Id, tileOvering.Row, tileOvering.Column);
+			
+			return true;
 		}
 
 		public void OnPieceDrag(Vector2 screenPosition)
@@ -132,11 +166,11 @@ namespace Game.Controllers
 		private async UniTaskVoid TransferSlicesDelay(PieceViewController sourcePiece, PieceViewController targetPiece,
 			SliceColor color, int amount)
 		{
-			await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Tween_Time * 1000));
+			await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Tween_Time * 1000 / Time.timeScale));
 
 			while (sourcePiece.GetSlicesCount(color) < amount)
 			{
-				await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Delay_Time * 1000));
+				await UniTask.Delay((int) (Constants.Gameplay.Slice_Transfer_Delay_Time * 1000 / Time.timeScale));
 			}
 			
 			TransferSlices(sourcePiece, targetPiece, color, amount);
@@ -278,9 +312,10 @@ namespace Game.Controllers
 			}
 
 			var hit = hits.Find(x => x.gameObject.HasComponent<TileViewController>());
+			var pieceHit = hits.Find(x => x.gameObject.HasComponent<PieceViewController>());
 
 			// Is not allowed to put a piece on a tile with already a piece in it
-			if (!hit.isValid)
+			if (!hit.isValid && pieceHit.isValid)
 			{
 				return null;
 			}
