@@ -18,6 +18,11 @@ namespace Game.Logic.Client
 		bool IsFirstSession { get; }
 		
 		/// <summary>
+		/// Checks if the current game session is a ml agents training session
+		/// </summary>
+		bool IsMlAgentsSession { get; }
+		
+		/// <summary>
 		/// Requests the information if the player already accepted the terms of service and compliance for this game
 		/// </summary>
 		bool IsComplianceAccepted { get; }
@@ -104,6 +109,9 @@ namespace Game.Logic.Client
 		/// <inheritdoc />
 		public bool IsFirstSession => Data.IsFirstSession;
 
+		/// <inheritdoc />
+		public bool IsMlAgentsSession { get; }
+
 		/// <inheritdoc cref="IAppLogic.IsComplianceAccepted" />
 		public bool IsComplianceAccepted
 		{
@@ -179,6 +187,10 @@ namespace Game.Logic.Client
 			ITimeService timeService) :
 			base(gameLogic, configsProvider, dataProvider, timeService)
 		{
+#if UNITY_EDITOR
+			// TODO for multiple environments run build
+			IsMlAgentsSession = true;
+#endif
 		}
 
 		/// <inheritdoc />

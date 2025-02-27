@@ -12,6 +12,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using Game.Utils;
 using Game.Controllers;
+using Game.MlAgents;
 using Game.Services.Analytics;
 
 namespace Game.StateMachines
@@ -196,6 +197,15 @@ namespace Game.StateMachines
 				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
 				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
 			await _piecesController.InitAsync();
+			
+			if (_gameDataProvider.AppDataProvider.IsMlAgentsSession)
+			{
+				await _services.AssetResolverService.InstantiateAsync(
+					AddressableId.Addressables_Prefabs_ML_Agent.GetConfig().Address, 
+					null, 
+					true,
+					go => go.GetComponent<SortAgent>().Init());
+			}
 		}
 
 		private void UnloadAssets()

@@ -1,3 +1,4 @@
+using Game.Logic;
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
 using Game.Services;
@@ -11,6 +12,7 @@ namespace Game.StateMachines
 	{
 		private readonly IStatechart _stateMachine;
 		private readonly IGameServicesLocator _services;
+		private readonly IGameDataProviderLocator _dataProvider;
 		private readonly IGameUiServiceInit _uiService;
 		private readonly InitialLoadingState _initialLoadingState;
 		private readonly GameplayState _gameplayState;
@@ -25,6 +27,7 @@ namespace Game.StateMachines
 
 		public GameStateMachine(IInstaller installer)
 		{
+			_dataProvider = installer.Resolve<IGameDataProviderLocator>();
 			_services = installer.Resolve<IGameServicesLocator>();
 			_uiService = installer.Resolve<IGameUiServiceInit>();
 
@@ -50,13 +53,17 @@ namespace Game.StateMachines
 			var initial = stateFactory.Initial("Initial");
 			var final = stateFactory.Final("Final");
 			var initialLoading = stateFactory.Nest("Initial Loading");
+			var menuSkipCheck = stateFactory.Choice("Menu Skip Check");
 			var mainMenu = stateFactory.Nest("Main Menu");
 			var game = stateFactory.Nest("Game");
 
 			initial.Transition().Target(initialLoading);
 			initial.OnExit(SubscribeEvents);
 
-			initialLoading.Nest(_initialLoadingState.Setup).Target(mainMenu);
+			initialLoading.Nest(_initialLoadingState.Setup).Target(menuSkipCheck);
+
+			menuSkipCheck.Transition().Condition(IsMenuToSkip).Target(game);
+			menuSkipCheck.Transition().Target(mainMenu);
 
 			mainMenu.Nest(_mainMenuState.Setup).Target(game);
 
@@ -73,6 +80,11 @@ namespace Game.StateMachines
 		private void SubscribeEvents()
 		{
 			// Add any events to subscribe
+		}
+
+		private bool IsMenuToSkip()
+		{
+			return _dataProvider.AppDataProvider.IsMlAgentsSession;
 		}
 	}
 }

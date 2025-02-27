@@ -58,11 +58,13 @@ namespace Game
 			installer.Bind<ICommandService<IGameLogicLocator>>(new CommandService<IGameLogicLocator>(gameLogic, installer.Resolve<IMessageBrokerService>()));
 
 			var gameServices = new GameServicesLocator(installer);
+			var piecesController = new PiecesController(gameServices, gameLogic);
 			
 			installer.Bind<IGameServicesLocator>(gameServices);
-			installer.Bind<PiecesController, ISetupPiecesController, IPiecesController>(new PiecesController(gameServices, gameLogic));
+			installer.Bind<PiecesController, ISetupPiecesController, IPiecesController>(piecesController);
 			MainInstaller.Bind<IGameDataProviderLocator>(gameLogic);
 			MainInstaller.Bind<IGameServicesLocator>(gameServices);
+			MainInstaller.Bind<IPiecesController>(piecesController);
 
 			_dataService = installer.Resolve<IDataService>();
 			_gameLogic = gameLogic;

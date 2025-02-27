@@ -13,6 +13,7 @@ using Game.ViewControllers;
 using GameLovers.Services;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Policies;
 using UnityEngine;
 
 namespace Game.MlAgents
@@ -42,18 +43,6 @@ namespace Game.MlAgents
 			}
 		}
 
-		protected override void Awake()
-		{			
-			_services = MainInstaller.Resolve<IGameServicesLocator>();
-			_gameDataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
-			_piecesController = MainInstaller.Resolve<IPiecesController>();
-			
-			base.Awake();
-			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDroppedMessage);
-			_services.MessageBrokerService.Subscribe<OnGameCompleteMessage>(OnGameCompleteMessage);
-			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
-		}
-
 		private void OnDestroy()
 		{
 			_services.MessageBrokerService.UnsubscribeAll(this);
@@ -63,6 +52,35 @@ namespace Game.MlAgents
 		{
 			RequestDecision();
 			AddReward(TimePassReward);
+		}
+
+		/// <summary>
+		/// Initializes the agent to allow to follow the <see cref="Game.StateMachines.GameplayState"/> order of execution flow
+		/// </summary>
+		public void Init()
+		{
+			_services = MainInstaller.Resolve<IGameServicesLocator>();
+			_gameDataProvider = MainInstaller.Resolve<IGameDataProviderLocator>();
+			_piecesController = MainInstaller.Resolve<IPiecesController>();
+			
+			_services.MessageBrokerService.Subscribe<OnPieceDroppedMessage>(OnPieceDroppedMessage);
+			_services.MessageBrokerService.Subscribe<OnGameInitMessage>(OnGameInitMessage);
+			_services.MessageBrokerService.Subscribe<OnGameCompleteMessage>(OnGameCompleteMessage);
+			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
+		}
+
+		public override void Initialize()
+		{
+			var behaviorParameters = GetComponent<BehaviorParameters>();
+			var actionSpec = behaviorParameters.BrainParameters.ActionSpec;
+			
+			actionSpec.BranchSizes = new int[]
+			{
+				Constants.Gameplay.Max_Deck_Pieces, 
+				Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns
+			};
+
+			behaviorParameters.BrainParameters.ActionSpec = actionSpec;
 		}
 
 		public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -232,6 +250,16 @@ namespace Game.MlAgents
 				{
 					AddReward(PieceCompleteReward);
 				}
+			}
+		}
+
+		private void OnGameInitMessage(OnGameInitMessage message)
+		{
+			gameObject.SetActive(true);
+			
+			while (DOTween.TotalActiveTweens() > 0)
+			{
+				DOTween.CompleteAll(true);
 			}
 		}
 
