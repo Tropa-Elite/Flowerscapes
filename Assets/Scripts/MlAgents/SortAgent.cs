@@ -14,6 +14,7 @@ using GameLovers.Services;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Game.MlAgents
@@ -33,14 +34,13 @@ namespace Game.MlAgents
 		private IPiecesController _piecesController;
 		private IGameDataProviderLocator _gameDataProvider;
 
-		private void OnValidate()
+		protected override void Awake()
 		{
-			if(_tiles == null || _tiles.Length != Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns)
-			{
-				_tiles = FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
+			base.Awake();
+			
+			_tiles = FindObjectsByType<TileViewController>(FindObjectsSortMode.None);
 				
-				Array.Sort(_tiles, (a, b) => TileData.ToTileId(a.Row, a.Column).CompareTo(TileData.ToTileId(b.Row, b.Column)));
-			}
+			Array.Sort(_tiles, (a, b) => TileData.ToTileId(a.Row, a.Column).CompareTo(TileData.ToTileId(b.Row, b.Column)));
 		}
 
 		private void OnDestroy()
@@ -69,26 +69,36 @@ namespace Game.MlAgents
 			_services.MessageBrokerService.Subscribe<OnGameOverMessage>(OnGameOverMessage);
 		}
 
+		/* This code has no effect and is defined manually on the agent Prefab. Find a fix online
 		public override void Initialize()
 		{
-			var behaviorParameters = GetComponent<BehaviorParameters>();
-			var actionSpec = behaviorParameters.BrainParameters.ActionSpec;
-			
-			actionSpec.BranchSizes = new int[]
-			{
-				Constants.Gameplay.Max_Deck_Pieces, 
+			GetComponent<BehaviorParameters>().BrainParameters.ActionSpec = ActionSpec.MakeDiscrete(
+				Constants.Gameplay.Max_Deck_Pieces,
 				Constants.Gameplay.Board_Rows * Constants.Gameplay.Board_Columns
-			};
-
-			behaviorParameters.BrainParameters.ActionSpec = actionSpec;
-		}
+			);
+		}*/
 
 		public override void OnActionReceived(ActionBuffers actionBuffers)
 		{
 			var deckPieceIndex = actionBuffers.DiscreteActions[0];
+
+			if (deckPieceIndex < 0)
+			{
+				AddReward(DropFailedReward);
+				return;
+			}
+			
 			var pieceId = _gameDataProvider.DeckSpawnerDataProvider.Deck[deckPieceIndex];
 			var (row, column) = TileData.IdToRowColumn(actionBuffers.DiscreteActions[1]);
-			var screenPos = _tiles[row * Constants.Gameplay.Board_Rows + column].transform.position;
+			var tileIndex = row * Constants.Gameplay.Board_Columns + column; 
+			
+			if (tileIndex < 0 || tileIndex >= _tiles.Length)
+			{
+				AddReward(DropFailedReward);
+				return;
+			}
+			
+			var screenPos = _tiles[tileIndex].transform.position;
 
 			_piecesController.TryGetPiece(pieceId, out var piece);
 			
@@ -111,9 +121,11 @@ namespace Game.MlAgents
 
 		public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
 		{
-			var branch = 0; // This is the discrete branch defined for the deck piece index choice
+			var branch = 0; // Branch for deck piece selection
+			var deckSize = _gameDataProvider.DeckSpawnerDataProvider.Deck.Count;
+			var maskLimit = Mathf.Min(Constants.Gameplay.Max_Deck_Pieces, deckSize);
 			
-			for (var i = 0; i < Constants.Gameplay.Max_Deck_Pieces; i++)
+			for (var i = 0; i < maskLimit; i++)
 			{
 				var id = _gameDataProvider.DeckSpawnerDataProvider.Deck[i];
 				var state = id.IsValid && _piecesController.TryGetPiece(id, out _);
@@ -121,7 +133,7 @@ namespace Game.MlAgents
 				actionMask.SetActionEnabled(branch, i, state);
 			}
 		}
-		
+
 		public override void Heuristic(in ActionBuffers actionBuffersOut)
 		{
 			var discreteActions = actionBuffersOut.DiscreteActions;
@@ -133,7 +145,7 @@ namespace Game.MlAgents
 		private int DeckPieceHeuristic()
 		{
 			var bestScore = float.MaxValue;
-			var index = 0;
+			var index = -1;
 			
 			for (var i = 0; i < _gameDataProvider.DeckSpawnerDataProvider.Deck.Count; i++)
 			{
@@ -155,6 +167,8 @@ namespace Game.MlAgents
 
 		private int TilePositionHeuristic(int deckPieceIndexPicked)
 		{
+			if (deckPieceIndexPicked < 0) return -1;
+			
 			var pickedPieceId = _gameDataProvider.DeckSpawnerDataProvider.Deck[deckPieceIndexPicked];
 			var piece = _gameDataProvider.PieceDataProvider.Pieces[pickedPieceId];
 			var bestScore = 0f;

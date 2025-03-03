@@ -134,6 +134,12 @@ GvhProjectSettings.xml
 quantum_code/packages
 quantum_server/packages
 
+# ML-Agents
+**/venv
+**/results
+**/Assets/ML-Agents
+**/Assets/ML-Agents.meta
+
 #Project Specific
 **/UserSettings/Layouts
 EditorUserSettings.*

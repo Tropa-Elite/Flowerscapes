@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using Game.Data;
 using Game.Logic;
 using Game.Utils;
 using Unity.MLAgents.Sensors;
+using UnityEngine;
 
 namespace Game.MlAgents
 {
@@ -28,17 +30,15 @@ namespace Game.MlAgents
 
 		public int Write(ObservationWriter writer)
 		{
+			var parameters = new List<float>((int) SliceColor.ColorCount);
+			
 			for (var i = 0; i < Constants.Gameplay.Board_Rows; i++)
 			{
 				for(var j = 0; j < Constants.Gameplay.Board_Columns; j++)
 				{
-					var parameters = new int[(int) SliceColor.ColorCount];
-				
-					if (_gameDataProvider.TileBoardDataProvider.TryGetPieceFromTile(i, j, out var piece))
-					{
-						 ProcessPieceColors(piece, parameters);
-					}
-
+					_gameDataProvider.TileBoardDataProvider.TryGetPieceFromTile(i, j, out var piece);
+					ProcessPieceColors(piece, parameters);
+					//writer.AddList(parameters, TileData.ToTileId(i, j));
 					WriteParameters(i, j, writer, parameters);
 				}
 			}
@@ -46,11 +46,12 @@ namespace Game.MlAgents
 			for (var i = 0; i < _gameDataProvider.DeckSpawnerDataProvider.Deck.Count; i++)
 			{
 				var id = _gameDataProvider.DeckSpawnerDataProvider.Deck[i];
-				var parameters = new int[(int) SliceColor.ColorCount];
+				//var parameters = new int[(int) SliceColor.ColorCount];
 				var row = Constants.Gameplay.Board_Rows - 1;
 				var column = Constants.Gameplay.Board_Columns - 1 + i;
 
 				ProcessPieceColors(_gameDataProvider.PieceDataProvider.Pieces[id], parameters);
+				//writer.AddList(parameters, TileData.ToTileId(i, column));
 				WriteParameters(row, column, writer, parameters);
 			}
 			
@@ -80,17 +81,34 @@ namespace Game.MlAgents
 			return _name;
 		}
 
-		private void ProcessPieceColors(IPieceData piece, int[] parameters)
+		private void ProcessPieceColors(IPieceData piece, IList<float> parameters)
 		{
+			for (var i = 0; i < (int) SliceColor.ColorCount; i++)
+			{
+				if (i >= parameters.Count)
+				{
+					parameters.Add(0);
+				}
+				else
+				{
+					parameters[i] = 0;
+				}
+			}
+			
+			if (piece == null)
+			{
+				return;
+			}
+			
 			foreach (var t in piece.Slices)
 			{
 				parameters[(int)t]++;
 			}
 		}
 
-		private void WriteParameters(int row, int column, ObservationWriter writer, int[] parameters)
+		private void WriteParameters(int row, int column, ObservationWriter writer, IList<float> parameters)
 		{
-			for (var i = 0; i < parameters.Length; i++)
+			for (var i = 0; i < parameters.Count; i++)
 			{
 				writer[i, TileData.ToTileId(row, column)] = parameters[i];
 			}

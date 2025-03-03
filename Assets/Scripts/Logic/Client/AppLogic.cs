@@ -187,10 +187,7 @@ namespace Game.Logic.Client
 			ITimeService timeService) :
 			base(gameLogic, configsProvider, dataProvider, timeService)
 		{
-#if UNITY_EDITOR
-			// TODO for multiple environments run build
-			IsMlAgentsSession = true;
-#endif
+			IsMlAgentsSession = false;
 		}
 
 		/// <inheritdoc />
