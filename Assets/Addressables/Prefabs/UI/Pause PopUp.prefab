@@ -265,7 +265,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Try Again
+  m_text: 'Reset Level
 
 '
   m_isRightToLeft: 0
