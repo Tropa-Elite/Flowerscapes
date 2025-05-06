@@ -84,7 +84,7 @@ namespace Game.StateMachines
 
 		private bool IsMenuToSkip()
 		{
-			return _dataProvider.AppDataProvider.IsMlAgentsSession;
+			return false;
 		}
 	}
 }

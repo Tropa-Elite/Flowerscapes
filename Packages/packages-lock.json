@@ -21,13 +21,6 @@
       "dependencies": {},
       "hash": "ce702021249e73fcff3fd05e0f726089c05641ac"
     },
-    "com.bytebrew.unitysdk": {
-      "version": "https://github.com/CoderGamester/ByteBrewUnitySDK.git?path=UPMPackage",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "2168505e05d7cb0069db13965f696026c0cbd10b"
-    },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
@@ -71,6 +64,15 @@
         "com.gamelovers.configsprovider": "0.1.0"
       },
       "hash": "e27418f4a83b933a19db4218f7d2bac478e858e5"
+    },
+    "com.gamelovers.mcp-unity": {
+      "version": "file:C:/Users/migas/Desktop/mcp-unity",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.editorcoroutines": "1.0.0"
+      }
     },
     "com.gamelovers.services": {
       "version": "https://github.com/CoderGamester/Services.git",
@@ -123,11 +125,11 @@
       "hash": "ac4a070b10c38a2b172aeaa404e5cb9fd2fe49d4"
     },
     "com.unity.2d.animation": {
-      "version": "10.1.4",
+      "version": "10.2.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.2d.common": "9.0.7",
+        "com.unity.2d.common": "9.1.0",
         "com.unity.2d.sprite": "1.0.0",
         "com.unity.collections": "1.2.4",
         "com.unity.modules.animation": "1.0.0",
@@ -136,7 +138,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.2d.common": {
-      "version": "9.0.7",
+      "version": "9.1.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -155,22 +157,23 @@
       "dependencies": {}
     },
     "com.unity.addressables": {
-      "version": "2.2.2",
+      "version": "2.4.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.profiling.core": "1.0.2",
+        "com.unity.test-framework": "1.4.5",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.unitywebrequest": "1.0.0",
-        "com.unity.scriptablebuildpipeline": "2.1.4",
+        "com.unity.scriptablebuildpipeline": "2.3.2",
         "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.8.18",
+      "version": "1.8.21",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -218,12 +221,11 @@
     "com.unity.ext.nunit": {
       "version": "2.0.5",
       "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
+      "source": "builtin",
+      "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.34",
+      "version": "3.0.36",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -232,7 +234,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.22",
+      "version": "2.0.23",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -250,7 +252,7 @@
       "hash": "6161accf3e7beab96341813913e714c7e2fb5c5d"
     },
     "com.unity.inputsystem": {
-      "version": "1.12.0",
+      "version": "1.14.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -264,28 +266,6 @@
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
-    },
-    "com.unity.ml-agents": {
-      "version": "3.0.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.sentis": "2.1.0",
-        "com.unity.modules.physics": "1.0.0",
-        "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.imageconversion": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.ml-agents.extensions": {
-      "version": "https://github.com/Unity-Technologies/ml-agents.git?path=com.unity.ml-agents.extensions",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.ml-agents": "3.0.0",
-        "com.unity.modules.physics": "1.0.0"
-      },
-      "hash": "cfb26e3eaf10e4866c0835a68087de392d631e88"
     },
     "com.unity.multiplayer.center": {
       "version": "1.0.0",
@@ -317,20 +297,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "2.1.4",
+      "version": "2.3.2",
       "depth": 2,
       "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.sentis": {
-      "version": "2.1.1",
-      "depth": 1,
-      "source": "registry",
       "dependencies": {
-        "com.unity.burst": "1.8.17",
-        "com.unity.collections": "2.4.3",
-        "com.unity.modules.imageconversion": "1.0.0"
+        "com.unity.test-framework": "1.4.5",
+        "com.unity.modules.assetbundle": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -366,35 +338,34 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.settings-manager": {
-      "version": "2.0.1",
+      "version": "2.1.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.4.5",
+      "version": "1.5.1",
       "depth": 0,
-      "source": "registry",
+      "source": "builtin",
       "dependencies": {
         "com.unity.ext.nunit": "2.0.3",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.test-framework.performance": {
-      "version": "3.0.3",
+      "version": "3.1.0",
       "depth": 2,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.31",
+        "com.unity.test-framework": "1.1.33",
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.textmeshpro": {
-      "version": "3.0.9",
+      "version": "5.0.0",
       "depth": 1,
       "source": "builtin",
       "dependencies": {

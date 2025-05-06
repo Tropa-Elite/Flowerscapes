@@ -41,7 +41,7 @@ namespace Game.Services
 		public async UniTask LoadGameUiSet(UiSetId uiSetId, float loadingCap)
 		{
 			var loadingScreen = GetUi<LoadingScreenPresenter>();
-			var tasks = LoadUiSetAsync((int)uiSetId);
+			var tasks = LoadUiSetAsync((int) uiSetId);
 			var initialLoadingPercentage = loadingScreen.LoadingPercentage;
 			var loadingBuffer = tasks.Count / loadingCap - initialLoadingPercentage;
 			var loadedUiCount = 0f;

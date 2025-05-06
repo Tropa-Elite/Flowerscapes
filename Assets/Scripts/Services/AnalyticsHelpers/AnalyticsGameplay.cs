@@ -13,6 +13,14 @@ namespace Game.Services.Analytics
         public AnalyticsGameplay(IAnalyticsService analyticsService) : base(analyticsService)
         {
         }
+		
+        /// <summary>
+        /// Logs the event when it's game over
+        /// </summary>
+		public void GameOver()
+		{
+            LogEvent(AnalyticsEvents.GameOver);
+		}
 
         /// <summary>
         /// Logs the event when the player enters a new level

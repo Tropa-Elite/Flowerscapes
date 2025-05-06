@@ -6,14 +6,10 @@ using Game.Services;
 using UnityEngine;
 using Game.Presenters;
 using Game.Messages;
-using Game.Commands;
 using Game.Logic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
-using Game.Utils;
 using Game.Controllers;
-using Game.MlAgents;
-using Game.Services.Analytics;
 
 namespace Game.StateMachines
 {
@@ -109,6 +105,7 @@ namespace Game.StateMachines
 
 		private void OnGameOverMessage(OnGameOverMessage message)
 		{
+			_services.AnalyticsService.GameplayCalls.GameOver();
 			_statechartTrigger(Game_Over_Event);
 		}
 
@@ -191,21 +188,22 @@ namespace Game.StateMachines
 			_uiService.CloseUi<WinScreenPresenter>();
 		}
 
+		private void GameplayLoadingStart()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingStarted(SceneId.Game.ToString());
+		}
+
+		private void GameplayLoadingEnd()
+		{
+			_services.AnalyticsService.SessionCalls.LoadingCompleted(SceneId.Game.ToString());
+		}
+
 		private async UniTask LoadGameplayAssets()
 		{
 			await UniTask.WhenAll(
 				_uiService.LoadGameUiSet(UiSetId.GameplayUi, 0.8f),
 				_services.AssetResolverService.LoadSceneAsync(SceneId.Game, LoadSceneMode.Additive));
 			await _piecesController.InitAsync();
-			
-			if (_gameDataProvider.AppDataProvider.IsMlAgentsSession)
-			{
-				await _services.AssetResolverService.InstantiateAsync(
-					AddressableId.Addressables_Prefabs_ML_Agent.GetConfig().Address, 
-					null, 
-					true,
-					go => go.GetComponent<SortAgent>().Init());
-			}
 		}
 
 		private void UnloadAssets()
@@ -214,16 +212,6 @@ namespace Game.StateMachines
 			_uiService.UnloadGameUiSet(UiSetId.GameplayUi);
 			_services.AssetResolverService.UnloadSceneAsync(SceneId.Game).Forget();
 			Resources.UnloadUnusedAssets();
-		}
-
-		private void GameplayLoadingStart()
-		{
-			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.GameplayLoading);
-		}
-
-		private void GameplayLoadingEnd()
-		{
-			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.GameplayLoading);
 		}
 	}
 }

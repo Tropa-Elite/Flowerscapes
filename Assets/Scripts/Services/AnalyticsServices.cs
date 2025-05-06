@@ -7,26 +7,6 @@ using mixpanel;
 namespace Game.Services
 {
 	/// <summary>
-	/// Static class that defines all the event types names
-	/// </summary>
-	public static class AnalyticsEvents
-	{
-		public static readonly string SessionStart = "game_session_start";
-		public static readonly string SessionEnd = "game_session_end";
-		public static readonly string SessionHeartbeat = "session_heartbeat";
-		public static readonly string SessionAdsData = "session_ads_data";
-		public static readonly string LoadingStarted = "loading_started";
-		public static readonly string LoadingCompleted = "loading_completed";
-		public static readonly string PlayerLogin = "player_login";
-		public static readonly string PlayerAge = "player_age";
-		public static readonly string MainMenuEnter = "main_menu_enter";
-		public static readonly string Error = "error_log";
-		public static readonly string Purchase = "purchase";
-		public static readonly string LevelStart = "level_start";
-		public static readonly string LevelComplete = "level_complete";
-	}
-
-	/// <summary>
 	/// The analytics service is an endpoint in the game to log custom events to Game's analytics console
 	/// </summary>
 	public interface IAnalyticsService
@@ -65,10 +45,10 @@ namespace Game.Services
 		public AnalyticsService(IMessageBrokerService messageBrokerService, IDataProvider dataProvider)
 		{
 			SessionCalls = new AnalyticsSession(this, dataProvider);
-			GameplayCalls = new AnalyticsGameplay(this);
 			EconomyCalls = new AnalyticsEconomy(this);
 			ErrorsCalls = new AnalyticsErrors(this);
 			MainMenuCalls = new AnalyticsMainMenu(this);
+			GameplayCalls = new AnalyticsGameplay(this);
 			
 			messageBrokerService.Subscribe<ApplicationComplianceAcceptedMessage>(OnApplicationComplianceAcceptedMessage);
 		}
@@ -78,6 +58,7 @@ namespace Game.Services
 		{
 			Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
 			SessionCalls.SessionStart();
+			// TODO: Use this call when user actively logs in the backend
 			//SessionCalls.PlayerLogin(SystemInfo.deviceUniqueIdentifier);
 		}
 		

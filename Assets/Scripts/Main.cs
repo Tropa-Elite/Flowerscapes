@@ -1,20 +1,20 @@
-using Game.Logic;
-using Game.Services;
-using Game.StateMachines;
 using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.InputSystem.UI;
-using System.Collections;
-using Game.Messages;
+using Unity.Services.Core;
 using Cysharp.Threading.Tasks;
-using Game.Controllers;
 using GameLovers.Services;
 using GameLovers;
 using GameLovers.UiService;
 using GameLovers.ConfigsProvider;
-using Unity.Services.Core;
 using GameLovers.AssetsImporter;
+using Game.Logic;
+using Game.Services;
+using Game.StateMachines;
+using Game.Messages;
+using Game.Controllers;
 
 // ReSharper disable once CheckNamespace
 
@@ -94,7 +94,7 @@ namespace Game
 			EnhancedTouchSupport.Enable();
 			InitAtt();
 
-			await Task.WhenAll(VersionServices.LoadVersionDataAsync(), UnityServices.InitializeAsync());
+			await UniTask.WhenAll(VersionServices.LoadVersionDataAsync().AsUniTask(), UnityServices.InitializeAsync().AsUniTask());
 
 			_services.Init();
 			_stateMachine.Run();

@@ -1,13 +1,12 @@
 using Cysharp.Threading.Tasks;
 using Game.Ids;
 using Game.Logic;
-using Game.Messages;
 using Game.Presenters;
 using Game.Services;
+using Game.Services.Analytics;
 using GameLovers.Services;
 using GameLovers.StatechartMachine;
 using System;
-using Game.Services.Analytics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -97,12 +96,12 @@ namespace Game.StateMachines
 
 		private void MenuLoadingStart()
 		{
-			_services.AnalyticsService.SessionCalls.LoadingCompleted(AnalyticsSession.MainMenuLoading);
+			_services.AnalyticsService.SessionCalls.LoadingCompleted(SceneId.Menu.ToString());
 		}
 
 		private void MenuLoadingEnd()
 		{
-			_services.AnalyticsService.SessionCalls.LoadingStarted(AnalyticsSession.MainMenuLoading);
+			_services.AnalyticsService.SessionCalls.LoadingStarted(SceneId.Menu.ToString());
 		}
 	}
 }

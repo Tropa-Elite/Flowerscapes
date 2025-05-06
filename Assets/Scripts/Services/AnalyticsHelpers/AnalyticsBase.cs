@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System;
 using AptabaseSDK;
-using ByteBrewSDK;
 using mixpanel;
 using UnityEngine;
 
@@ -37,29 +36,12 @@ namespace Game.Services.Analytics
 				Aptabase.TrackEvent(eventName, parameters);
 				MixpanelTrack(eventName, parameters);
 				UnityAnalyticsTrack(eventName, parameters);
-				ByteBrewTrack(eventName, parameters);
 			}
 			catch (Exception e)
 			{
 				Debug.LogError("Error while sending analytics: " + e.Message);
 				Debug.LogException(e);
 			}
-		}
-		
-		private void ByteBrewTrack(string eventName, Dictionary<string, object> parameters)
-		{
-			if (parameters == null || parameters.Count == 0)
-			{
-				ByteBrew.NewCustomEvent(eventName);
-				return;
-			}
-			
-			var parsedValueStr = "";
-			foreach(var keyPair in parameters)
-			{
-				parsedValueStr += String.Format("{0}={1};", keyPair.Key, keyPair.Value);
-			}
-			ByteBrew.NewCustomEvent(eventName, parsedValueStr);
 		}
 
 		private void UnityAnalyticsTrack(string eventName, Dictionary<string, object> parameters)

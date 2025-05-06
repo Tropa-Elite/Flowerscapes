@@ -1,9 +1,4 @@
-﻿using System;
-using Game.Messages;
-using Game.Services;
-using GameLovers;
-using GameLovers.Services;
-using GameLovers.StatechartMachine;
+﻿using GameLovers;
 using GameLovers.UiService;
 using TMPro;
 using UnityEngine;

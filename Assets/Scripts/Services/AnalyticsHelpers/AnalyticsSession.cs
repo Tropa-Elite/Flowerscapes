@@ -13,9 +13,6 @@ namespace Game.Services.Analytics
 	/// </summary>
 	public class AnalyticsSession : AnalyticsBase
 	{
-		public const string MainMenuLoading = "main_menu_loading";
-		public const string GameplayLoading = "gameplay_loading";
-
 		private float _loadingStarted;
 		private IDataProvider _dataProvider;
 
@@ -33,7 +30,7 @@ namespace Game.Services.Analytics
 				var diagonalInchesSqrt =Mathf.Pow (screenWidthDpi, 2) + Mathf.Pow (screenHeightDpi, 2);
 				var aspectRatio = Mathf.Max(screenWidth, screenHeight) / Mathf.Min(screenWidth, screenHeight);
 
-				// This are physical size device checks with aspect ratio double confirmation
+				// This double checks the physical size device with screen aspect ratio
 				return diagonalInchesSqrt > 42f && aspectRatio < 2f;
 #else
 				return false;
@@ -66,7 +63,13 @@ namespace Game.Services.Analytics
 		/// </summary>
 		public void SessionStart()
 		{
-			LogEvent(AnalyticsEvents.SessionStart, StartData);
+			var appData = _dataProvider.HasData<AppData>() ? _dataProvider.GetData<AppData>() : new AppData();
+			var loginData = StartData;
+			
+			appData.FirstLoginTime = appData.SessionCount == 0 ? DateTime.UtcNow : appData.FirstLoginTime;
+			
+			loginData.Add("session_count", appData.SessionCount);
+			loginData.Add("days_since_install", (DateTime.UtcNow - appData.FirstLoginTime).Days);
 		}
 
 		/// <summary>
@@ -170,12 +173,9 @@ namespace Game.Services.Analytics
 		{
 			UnityEngine.CrashReportHandler.CrashReportHandler.SetUserMetadata("player_id", id);
 
-			var appData = _dataProvider.GetData<AppData>();
 			var loginData = StartData;
 			
 			loginData.Add("player_id", id);
-			loginData.Add("session_count", appData.SessionCount);
-			loginData.Add("days_since_install", (DateTime.UtcNow - appData.FirstLoginTime).Days);
 			
 			LogEvent(AnalyticsEvents.PlayerLogin, loginData);
 		}
