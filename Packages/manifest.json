@@ -8,7 +8,7 @@
     "com.gamelovers.configsprovider": "https://github.com/CoderGamester/Unity-ConfigsProvider.git",
     "com.gamelovers.dataextensions": "https://github.com/CoderGamester/com.gamelovers.dataextensions.git",
     "com.gamelovers.googlesheetimporter": "https://github.com/CoderGamester/Unity-GoogleSheet-Importer.git",
-    "com.gamelovers.mcp-unity": "file:C:/Users/migas/Desktop/mcp-unity",
+    "com.gamelovers.mcp-unity": "https://github.com/CoderGamester/mcp-unity.git",
     "com.gamelovers.services": "https://github.com/CoderGamester/Services.git",
     "com.gamelovers.statechart": "https://github.com/CoderGamester/com.gamelovers.statechart.git",
     "com.gamelovers.uiservice": "https://github.com/CoderGamester/com.gamelovers.uiservice.git",

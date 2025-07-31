@@ -1,14 +1,26 @@
 {
   "folders": [
     {
-      "path": "Assets"
+      "path": "AI Directory"
+    },
+    {
+      "path": "Assets/Scripts"
+    },
+    {
+      "path": "Library/PackageCache"
     },
     {
       "path": "Packages"
     },
     {
-      "path": "Library/PackageCache"
+      "path": "."
     }
   ],
-  "settings": {}
+  "settings": {
+    "files.exclude": {
+      "Assets/": true,
+      "Library/": true,
+      "**/*.meta": true
+    }
+  }
 }
